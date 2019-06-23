@@ -1,5 +1,7 @@
 package com.leo.accessibilityhelplib.callback
 
+import android.view.accessibility.AccessibilityEvent
+
 interface IActivityInfoImpl {
-    fun onActivityInfo(packageName: String = "", className: String = "")
+    fun onAccessibilityEvent(event: AccessibilityEvent)
 }

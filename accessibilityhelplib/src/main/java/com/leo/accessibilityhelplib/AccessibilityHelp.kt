@@ -59,6 +59,6 @@ class AccessibilityHelp {
     }
 
     fun notifyEvent(event: AccessibilityEvent) {
-        mIActivityInfoImpl?.onActivityInfo(event.packageName.toString(), event.className.toString())
+        mIActivityInfoImpl?.onAccessibilityEvent(event)
     }
 }

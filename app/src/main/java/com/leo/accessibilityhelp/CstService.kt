@@ -8,6 +8,7 @@ import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityEvent
 import com.leo.accessibilityhelp.view.FloatingView
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
@@ -91,11 +92,15 @@ class CstService : Service(), IActivityInfoImpl {
         }
     }
 
-    override fun onActivityInfo(packageName: String, className: String) {
-        mFloatingView?.updateInfo(packageName, className)
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        mFloatingView?.let {
+            if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                it.updateInfo(event.packageName.toString(), event.className.toString())
+            }
+        }
         val nodeInfo = AccessibilityHelp.instance.nodeInfo
         nodeInfo?.let {
-            LogUtil.e(TAG, it.toString())
+            LogUtil.i(TAG, it.toString())
         }
     }
 }
