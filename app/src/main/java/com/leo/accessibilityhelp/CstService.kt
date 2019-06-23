@@ -4,6 +4,7 @@ import android.app.Service
 import android.content.Context
 import android.content.Intent
 import android.graphics.PixelFormat
+import android.os.Build
 import android.os.IBinder
 import android.view.Gravity
 import android.view.WindowManager
@@ -25,13 +26,9 @@ class CstService : Service(), IActivityInfoImpl {
         const val COMMAND_CLOSE = "COMMAND_CLOSE"
     }
 
-    override fun onCreate() {
-        super.onCreate()
-        AccessibilityHelp.instance.mIActivityInfoImpl = this@CstService
-    }
-
     override fun onDestroy() {
         super.onDestroy()
+        LogUtil.i(TAG, "onDestroy")
         removeView()
         AccessibilityHelp.instance.mIActivityInfoImpl = null
     }
@@ -44,6 +41,7 @@ class CstService : Service(), IActivityInfoImpl {
         intent?.let {
             LogUtil.d(TAG, "onStartCommand")
             initTrackerWindowManager()
+            AccessibilityHelp.instance.mIActivityInfoImpl = this@CstService
             val command = it.getStringExtra(COMMAND)
             if (command != null) {
                 if (command == COMMAND_OPEN) {
@@ -57,14 +55,18 @@ class CstService : Service(), IActivityInfoImpl {
     }
 
     private fun initTrackerWindowManager() {
-        mWindowManager = ContextHelp.getContext().getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        mWindowManager = this@CstService.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val params = WindowManager.LayoutParams()
         params.x = 0
         params.y = 0
         params.width = WindowManager.LayoutParams.WRAP_CONTENT
         params.height = WindowManager.LayoutParams.WRAP_CONTENT
         params.gravity = Gravity.START or Gravity.TOP
-        params.type = WindowManager.LayoutParams.TYPE_PHONE
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+        } else {
+            params.type = WindowManager.LayoutParams.TYPE_PHONE
+        }
         params.format = PixelFormat.RGBA_8888
         params.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         mParams = params
@@ -75,10 +77,8 @@ class CstService : Service(), IActivityInfoImpl {
             synchronized(lock = CstService::class, block = {
                 if (null == mFloatingView) {
                     mFloatingView = FloatingView(this@CstService)
-                    mFloatingView?.let {
-                        it.layoutParams = mParams
-                        mWindowManager?.addView(it, mParams)
-                    }
+                    mFloatingView!!.layoutParams = mParams
+                    mWindowManager?.addView(mFloatingView, mParams)
                 }
             })
         }
@@ -95,7 +95,7 @@ class CstService : Service(), IActivityInfoImpl {
         mFloatingView?.updateInfo(packageName, className)
         val nodeInfo = AccessibilityHelp.instance.nodeInfo
         nodeInfo?.let {
-
+            LogUtil.e(TAG, it.toString())
         }
     }
 }

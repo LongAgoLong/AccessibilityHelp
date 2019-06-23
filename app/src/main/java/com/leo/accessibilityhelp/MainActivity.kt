@@ -31,6 +31,8 @@ class MainActivity : AppCompatActivity() {
         openActivityTrackerBtn.setOnClickListener {
             if (AccessibilityHelp.instance.checkAccessibility(this@MainActivity)) {
                 switchFloatingViewState(true)
+            } else {
+                Toast.makeText(this@MainActivity, "请先授予AccessibilityHelp的无障碍服务权限", Toast.LENGTH_LONG).show()
             }
         }
         closeActivityTrackerBtn.setOnClickListener {

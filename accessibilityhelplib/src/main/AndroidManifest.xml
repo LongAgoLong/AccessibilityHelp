@@ -1,6 +1,4 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.leo.accessibilityhelplib" >
+<manifest package="com.leo.accessibilityhelplib">
 
-    <application>
-    </application>
+    <application></application>
 </manifest>
