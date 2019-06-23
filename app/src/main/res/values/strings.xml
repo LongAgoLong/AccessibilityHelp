@@ -1,0 +1,5 @@
+<resources>
+    <string name="app_name">AccessibilityHelp</string>
+    <string name="text_intro">一个全局悬浮窗，显示栈顶Activity信息\n(开启无障碍服务以及悬浮窗权限)</string>
+    <string name="accessibility_service_description">开启功能, 可以实现跟踪栈顶Activity/监控微信抢红包/自动安装等功能</string>
+</resources>

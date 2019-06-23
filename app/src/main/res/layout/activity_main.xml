@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<android.support.constraint.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp"
+    tools:context=".MainActivity">
+
+    <TextView
+        android:id="@+id/introTv"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal"
+        android:lineSpacingExtra="5dp"
+        android:text="@string/text_intro"
+        android:textColor="@android:color/black"
+        app:layout_constraintBottom_toTopOf="@+id/openActivityTrackerBtn"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="packed" />
+
+    <Button
+        android:id="@+id/openActivityTrackerBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_btn"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:text="开启悬浮窗"
+        app:layout_constraintBottom_toTopOf="@+id/closeServiceBtn"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toLeftOf="@+id/closeActivityTrackerBtn"
+        app:layout_constraintTop_toBottomOf="@+id/introTv" />
+
+    <Button
+        android:id="@+id/closeActivityTrackerBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:background="@drawable/bg_btn"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:text="关闭悬浮窗"
+        app:layout_constraintLeft_toRightOf="@+id/openActivityTrackerBtn"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toTopOf="@+id/openActivityTrackerBtn" />
+
+    <Button
+        android:id="@+id/closeServiceBtn"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="20dp"
+        android:background="@drawable/bg_btn"
+        android:paddingLeft="20dp"
+        android:paddingRight="20dp"
+        android:text="关闭服务"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintLeft_toLeftOf="parent"
+        app:layout_constraintRight_toRightOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/openActivityTrackerBtn" />
+</android.support.constraint.ConstraintLayout>
