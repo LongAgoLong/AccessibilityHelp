@@ -35,5 +35,6 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.github.LongAgoLong.AndroidUtil:system:1.5.9'
+    implementation 'com.github.LongAgoLong.AndroidUtil:common:1.5.9'
     implementation project(path: ':accessibilityhelplib')
 }

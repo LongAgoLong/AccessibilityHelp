@@ -24,7 +24,10 @@ class AccessibilityCstService : AccessibilityService() {
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         //To change body of created functions use File | Settings | File Templates.
-        LogUtil.i(TAG, "onAccessibilityEvent${event?.packageName}")
+//        LogUtil.i(
+//            TAG,
+//            "onAccessibilityEvent : pkg is ${event?.packageName}; cls name is ${event?.className}"
+//        )
         AccessibilityHelp.instance.nodeInfo = rootInActiveWindow
         event?.let {
             AccessibilityHelp.instance.notifyEvent(it)

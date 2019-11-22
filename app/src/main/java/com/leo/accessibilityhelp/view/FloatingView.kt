@@ -18,7 +18,8 @@ import com.leo.accessibilityhelp.R
  * Created by jinliangshan on 16/12/26.
  */
 class FloatingView(private val mContext: Context) : LinearLayout(mContext) {
-    private val mWindowManager: WindowManager = mContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+    private val mWindowManager: WindowManager =
+        mContext.getSystemService(Context.WINDOW_SERVICE) as WindowManager
     private var mTvPackageName: TextView? = null
     private var mTvClassName: TextView? = null
     private var mIvClose: ImageView? = null
@@ -38,17 +39,20 @@ class FloatingView(private val mContext: Context) : LinearLayout(mContext) {
 
         mIvClose!!.setOnClickListener {
             Toast.makeText(mContext, "关闭悬浮框", Toast.LENGTH_SHORT).show()
-            mContext.startService(
-                    Intent(mContext, CstService::class.java)
-                            .putExtra(CstService.COMMAND, CstService.COMMAND_CLOSE)
+            val intent = Intent(mContext, CstService::class.java)
+            intent.putExtra(CstService.TYPE, CstService.TYPE_COMMAND)
+            intent.putExtra(
+                CstService.KEY_COMMAND, CstService.COMMAND_CLOSE
             )
+            mContext.startService(intent)
         }
     }
 
     fun updateInfo(packageName: String = "", className: String = "") {
         Log.d(TAG, "event:$packageName: $className")
         mTvPackageName!!.text = packageName
-        mTvClassName!!.text = if (className.startsWith(packageName)) className.substring(packageName.length) else className
+        mTvClassName!!.text =
+            if (className.startsWith(packageName)) className.substring(packageName.length) else className
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {

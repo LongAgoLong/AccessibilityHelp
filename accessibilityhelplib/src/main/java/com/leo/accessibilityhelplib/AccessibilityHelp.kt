@@ -39,7 +39,7 @@ class AccessibilityHelp {
         return true
     }
 
-    fun isAccessibilitySettingsOn(context: Context): Boolean {
+    private fun isAccessibilitySettingsOn(context: Context): Boolean {
         var accessibilityEnabled = 0
         try {
             accessibilityEnabled = Secure.getInt(context.contentResolver,
