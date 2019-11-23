@@ -141,18 +141,30 @@ class CstService : Service(), IActivityInfoImpl {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+//        when (event.eventType) {
+//            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
+//                LogUtil.e(TAG, "eventType is TYPE_WINDOW_CONTENT_CHANGED")
+//            }
+//            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
+//                LogUtil.e(TAG, "eventType is TYPE_WINDOW_STATE_CHANGED")
+//            }
+//            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
+//                LogUtil.e(TAG, "eventType is TYPE_WINDOWS_CHANGED")
+//            }
+//            AccessibilityEvent.TYPE_VIEW_HOVER_ENTER -> {
+//                LogUtil.e(TAG, "eventType is TYPE_VIEW_HOVER_ENTER")
+//            }
+//            AccessibilityEvent.TYPE_VIEW_HOVER_EXIT -> {
+//                LogUtil.e(TAG, "eventType is TYPE_VIEW_HOVER_EXIT")
+//            }
+//        }
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
-        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED) {
-            val nodeInfo = AccessibilityHelp.instance.nodeInfo
-            if (null != nodeInfo) {
-                LogUtil.i(
-                    TAG,
-                    "nodeInfo is ${nodeInfo.className}"
-                )
+        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+            AccessibilityHelp.instance.nodeInfo.let {
                 if (mIsInterceptAD) {
                     mAbEvent = event
-                    val targetNode = matchNodeInfo(nodeInfo)
+                    val targetNode = matchNodeInfo(it)
                     mMatchCount = 0
                     canPerformClick(targetNode)
                 }
@@ -173,12 +185,6 @@ class CstService : Service(), IActivityInfoImpl {
             if (childCount > 0) {
                 for (i in 0 until childCount) {
                     val tempNode = node.getChild(i)
-                    if (tempNode != null) {
-                        LogUtil.d(
-                            TAG, "matchNodeInfo() tempNode : "
-                                    + tempNode.className + ", text : " + tempNode.text
-                        )
-                    }
                     val targetNode = matchNodeInfo(tempNode)
                     if (null != targetNode) {
                         return targetNode
