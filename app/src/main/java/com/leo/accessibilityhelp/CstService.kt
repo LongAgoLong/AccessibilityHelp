@@ -47,7 +47,7 @@ class CstService : Service(), IActivityInfoImpl {
     override fun onDestroy() {
         LogUtil.i(TAG, "onDestroy")
         removeView()
-        AccessibilityHelp.instance.mIActivityInfoImpl = null
+        AccessibilityHelp.getInstance().mIActivityInfoImpl = null
         stopForeground(true)
         super.onDestroy()
     }
@@ -61,7 +61,7 @@ class CstService : Service(), IActivityInfoImpl {
         intent?.let {
             LogUtil.d(TAG, "onStartCommand")
             initTrackerWindowManager()
-            AccessibilityHelp.instance.mIActivityInfoImpl = this@CstService
+            AccessibilityHelp.getInstance().mIActivityInfoImpl = this@CstService
             when (it.getIntExtra(TYPE, TYPE_COMMAND)) {
                 TYPE_COMMAND -> {
                     val command = it.getStringExtra(KEY_COMMAND)
@@ -161,7 +161,7 @@ class CstService : Service(), IActivityInfoImpl {
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
         } else if (event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            AccessibilityHelp.instance.nodeInfo.let {
+            AccessibilityHelp.getInstance().nodeInfo.let {
                 if (mIsInterceptAD) {
                     mAbEvent = event
                     val targetNode = matchNodeInfo(it)

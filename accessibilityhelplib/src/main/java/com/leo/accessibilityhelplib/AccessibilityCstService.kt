@@ -28,9 +28,9 @@ class AccessibilityCstService : AccessibilityService() {
 //            TAG,
 //            "onAccessibilityEvent : pkg is ${event?.packageName}; cls name is ${event?.className}"
 //        )
-        AccessibilityHelp.instance.nodeInfo = rootInActiveWindow
-        event?.let {
-            AccessibilityHelp.instance.notifyEvent(it)
+        AccessibilityHelp.getInstance().nodeInfo = rootInActiveWindow
+        event?.run {
+            AccessibilityHelp.getInstance().notifyEvent(this)
         }
     }
 

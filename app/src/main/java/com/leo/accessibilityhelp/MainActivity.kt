@@ -30,7 +30,7 @@ class MainActivity : AppCompatActivity() {
          * 开启UI类完整包名和类名悬浮窗
          */
         openActivityTrackerBtn.setOnClickListener {
-            if (!AccessibilityHelp.instance.checkAccessibility(this@MainActivity)) {
+            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(this@MainActivity, "请授予${AppInfoUtil.getAppName()}无障碍服务权限")
             }
             switchFloatingViewState(true)
@@ -42,7 +42,7 @@ class MainActivity : AppCompatActivity() {
          * 开启/关闭开屏广告拦截功能
          */
         openInterceptAdBtn.setOnClickListener {
-            if (!AccessibilityHelp.instance.checkAccessibility(this@MainActivity)) {
+            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(this@MainActivity, "请授予${AppInfoUtil.getAppName()}无障碍服务权限")
             }
             switchInterceptAd(true)
@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         checkPermissionBtn.setOnClickListener {
-            if (!AccessibilityHelp.instance.checkAccessibility(this@MainActivity)) {
+            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(this, "请授予${AppInfoUtil.getAppName()}无障碍服务权限")
             } else {
                 ToastUtil.show(this, "无障碍服务已授权")

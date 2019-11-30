@@ -20,9 +20,17 @@ class AccessibilityHelp {
         /**
          * 懒加载单例
          */
-        val instance by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
-            AccessibilityHelp()
-        }
+//        val instance by lazy(LazyThreadSafetyMode.SYNCHRONIZED) {
+//            AccessibilityHelp()
+//        }
+
+        @Volatile
+        private var instance: AccessibilityHelp? = null
+
+        fun getInstance() =
+            instance ?: synchronized(this) {
+                instance ?: AccessibilityHelp().also { instance = it }
+            }
     }
 
     /**
@@ -32,7 +40,7 @@ class AccessibilityHelp {
         if (!isAccessibilitySettingsOn(context)) {
             // 引导至辅助功能设置页面
             context.startActivity(
-                    Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
+                Intent(Settings.ACTION_ACCESSIBILITY_SETTINGS)
             )
             return false
         }
@@ -42,17 +50,21 @@ class AccessibilityHelp {
     private fun isAccessibilitySettingsOn(context: Context): Boolean {
         var accessibilityEnabled = 0
         try {
-            accessibilityEnabled = Secure.getInt(context.contentResolver,
-                    ACCESSIBILITY_ENABLED)
+            accessibilityEnabled = Secure.getInt(
+                context.contentResolver,
+                ACCESSIBILITY_ENABLED
+            )
         } catch (e: SettingNotFoundException) {
             e.printStackTrace()
         }
 
         if (accessibilityEnabled == 1) {
-            val services = Secure.getString(context.contentResolver,
-                    ENABLED_ACCESSIBILITY_SERVICES)
-            services?.let {
-                return it.toLowerCase().contains(context.packageName.toLowerCase())
+            val services = Secure.getString(
+                context.contentResolver,
+                ENABLED_ACCESSIBILITY_SERVICES
+            )
+            services?.run {
+               return toLowerCase().contains(context.packageName.toLowerCase())
             }
         }
         return false
