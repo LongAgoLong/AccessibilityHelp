@@ -15,9 +15,13 @@ import com.leo.accessibilityhelp.view.FloatingView
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
 import com.leo.commonutil.app.AppInfoUtil
+import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
 import com.leo.commonutil.notify.NotificationCompatUtil
 import com.leo.commonutil.notify.ToastUtil
 import com.leo.system.LogUtil
+import java.lang.Exception
+import java.util.concurrent.Callable
+import java.util.concurrent.TimeUnit
 
 
 class CstService : Service(), IActivityInfoImpl {
@@ -160,13 +164,24 @@ class CstService : Service(), IActivityInfoImpl {
 //        }
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
-        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            AccessibilityHelp.getInstance().nodeInfo.let {
-                if (mIsInterceptAD) {
-                    mAbEvent = event
-                    val targetNode = matchNodeInfo(it)
+            AccessibilityHelp.getInstance().nodeInfo?.let {
+                if (!mIsInterceptAD) {
+                    return
+                }
+                mAbEvent = event
+                val future =
+                    ThreadPoolHelp.getThreadPool().submit(object : Callable<AccessibilityNodeInfo> {
+                        override fun call(): AccessibilityNodeInfo? {
+                            return matchNodeInfo(it)
+                        }
+
+                    })
+                try {
+                    val targetNode = future.get(2, TimeUnit.SECONDS)
                     mMatchCount = 0
                     canPerformClick(targetNode)
+                } catch (e: Exception) {
+//                    e.printStackTrace()
                 }
             }
         }

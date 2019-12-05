@@ -2,7 +2,9 @@ package com.leo.accessibilityhelplib
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
+import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
 import com.leo.system.LogUtil
+import java.util.concurrent.TimeUnit
 
 class AccessibilityCstService : AccessibilityService() {
     companion object {
@@ -28,9 +30,17 @@ class AccessibilityCstService : AccessibilityService() {
 //            TAG,
 //            "onAccessibilityEvent : pkg is ${event?.packageName}; cls name is ${event?.className}"
 //        )
-        AccessibilityHelp.getInstance().nodeInfo = rootInActiveWindow
-        event?.run {
-            AccessibilityHelp.getInstance().notifyEvent(this)
+        val future = ThreadPoolHelp.submit { rootInActiveWindow }
+        try {
+            val nodeInfo = future.get(3, TimeUnit.SECONDS)
+            nodeInfo?.run {
+                AccessibilityHelp.getInstance().nodeInfo = this
+            }
+            event?.run {
+                AccessibilityHelp.getInstance().notifyEvent(this)
+            }
+        } catch (e: Exception) {
+//            e.printStackTrace()
         }
     }
 
