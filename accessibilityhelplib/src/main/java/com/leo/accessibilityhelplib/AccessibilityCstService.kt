@@ -30,9 +30,8 @@ class AccessibilityCstService : AccessibilityService() {
 //            TAG,
 //            "onAccessibilityEvent : pkg is ${event?.packageName}; cls name is ${event?.className}"
 //        )
-        val future = ThreadPoolHelp.submit { rootInActiveWindow }
         try {
-            val nodeInfo = future.get(3, TimeUnit.SECONDS)
+            val nodeInfo = rootInActiveWindow
             nodeInfo?.run {
                 AccessibilityHelp.getInstance().nodeInfo = this
             }
@@ -40,7 +39,7 @@ class AccessibilityCstService : AccessibilityService() {
                 AccessibilityHelp.getInstance().notifyEvent(this)
             }
         } catch (e: Exception) {
-//            e.printStackTrace()
+            e.printStackTrace()
         }
     }
 

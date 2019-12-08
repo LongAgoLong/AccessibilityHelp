@@ -29,7 +29,6 @@ class CstService : Service(), IActivityInfoImpl {
     var mWindowManager: WindowManager? = null
     var mFloatingView: FloatingView? = null
     var mIsInterceptAD: Boolean = false
-    var mAbEvent: AccessibilityEvent? = null
     var mMatchCount: Int = 0
 
     companion object {
@@ -164,17 +163,23 @@ class CstService : Service(), IActivityInfoImpl {
 //        }
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
-            AccessibilityHelp.getInstance().nodeInfo?.let {
+        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
+            AccessibilityHelp.getInstance().nodeInfo.let {
                 if (!mIsInterceptAD) {
                     return
                 }
-                mAbEvent = event
+                /**
+                 * 1、优雅的关闭，用 shutdown()
+                 * 2、想立马关闭，并得到未执行任务列表，用shutdownNow()
+                 * 3、优雅的关闭，并允许关闭声明后新任务能提交，用 awaitTermination()
+                 * 4、关闭功能 【从强到弱】 依次是：shuntdownNow() > shutdown() > awaitTermination()
+                 */
+                ThreadPoolHelp.getThreadPool().awaitTermination(100, TimeUnit.MILLISECONDS)
                 val future =
                     ThreadPoolHelp.getThreadPool().submit(object : Callable<AccessibilityNodeInfo> {
                         override fun call(): AccessibilityNodeInfo? {
                             return matchNodeInfo(it)
                         }
-
                     })
                 try {
                     val targetNode = future.get(2, TimeUnit.SECONDS)
