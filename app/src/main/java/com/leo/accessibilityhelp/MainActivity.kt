@@ -5,22 +5,25 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.support.annotation.RequiresApi
-import android.support.v7.app.AppCompatActivity
+import androidx.annotation.RequiresApi
+import androidx.appcompat.app.AppCompatActivity
+import androidx.databinding.DataBindingUtil
+import com.leo.accessibilityhelp.databinding.ActivityMainBinding
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.ToastUtil
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 class MainActivity : AppCompatActivity() {
+    private lateinit var mBinding: ActivityMainBinding
+
     companion object {
         private const val REQUEST_CODE = 1
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         initView()
         checkOverlayPermission()
     }
@@ -29,36 +32,36 @@ class MainActivity : AppCompatActivity() {
         /**
          * 开启UI类完整包名和类名悬浮窗
          */
-        openActivityTrackerBtn.setOnClickListener {
+        mBinding.openActivityTrackerBtn?.setOnClickListener {
             if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(this@MainActivity, "请授予${AppInfoUtil.getAppName()}无障碍服务权限")
             }
             switchFloatingViewState(true)
         }
-        closeActivityTrackerBtn.setOnClickListener {
+        mBinding.closeActivityTrackerBtn?.setOnClickListener {
             switchFloatingViewState(false)
         }
         /**
          * 开启/关闭开屏广告拦截功能
          */
-        openInterceptAdBtn.setOnClickListener {
+        mBinding.openInterceptAdBtn?.setOnClickListener {
             if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(this@MainActivity, "请授予${AppInfoUtil.getAppName()}无障碍服务权限")
             }
             switchInterceptAd(true)
         }
-        closeInterceptAdBtn.setOnClickListener {
+        mBinding.closeInterceptAdBtn?.setOnClickListener {
             switchInterceptAd(false)
         }
 
-        checkPermissionBtn.setOnClickListener {
+        mBinding.checkPermissionBtn?.setOnClickListener {
             if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(this, "请授予${AppInfoUtil.getAppName()}无障碍服务权限")
             } else {
                 ToastUtil.show(this, "无障碍服务已授权")
             }
         }
-        closeServiceBtn.setOnClickListener {
+        mBinding.closeServiceBtn?.setOnClickListener {
             closeService()
         }
     }
