@@ -26,12 +26,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         initView()
-        checkOverlayPermission()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        ServiceHelp.getInstance().unBindService()
     }
 
     private fun initView() {
@@ -39,12 +33,18 @@ class MainActivity : AppCompatActivity() {
          * 开启UI类完整包名和类名悬浮窗
          */
         mBinding.openActivityTrackerBtn.setOnClickListener {
+            if (!checkOverlayPermission()) {
+                return@setOnClickListener
+            }
             if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
             }
             ServiceHelp.getInstance().switchFloatingViewState(true)
         }
         mBinding.closeActivityTrackerBtn.setOnClickListener {
+            if (!checkOverlayPermission()) {
+                return@setOnClickListener
+            }
             ServiceHelp.getInstance().switchFloatingViewState(false)
         }
         /**
@@ -57,6 +57,9 @@ class MainActivity : AppCompatActivity() {
             ServiceHelp.getInstance().switchInterceptAd(true)
         }
         mBinding.closeInterceptAdBtn.setOnClickListener {
+            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
+                ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
+            }
             ServiceHelp.getInstance().switchInterceptAd(false)
         }
 
@@ -72,43 +75,17 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    /**
-     * 开启/关闭悬浮窗
-     */
-    private fun switchFloatingViewState(b: Boolean) {
-        val intent = Intent(this, CstService::class.java)
-        intent.putExtra(CstService.TYPE, CstService.TYPE_COMMAND)
-        intent.putExtra(
-            CstService.KEY_COMMAND,
-            if (b) CstService.COMMAND_OPEN else CstService.COMMAND_CLOSE
-        )
-        startService(intent)
-    }
-
-    private fun switchInterceptAd(b: Boolean) {
-        val intent = Intent(this, CstService::class.java)
-        intent.putExtra(CstService.TYPE, CstService.TYPE_INTERCEPT_AD)
-        intent.putExtra(CstService.KEY_INTERCEPT_AD, b)
-        startService(intent)
-    }
-
-    /**
-     * 关闭服务
-     */
-    private fun closeService() {
-        val intent = Intent(this@MainActivity, CstService::class.java)
-        stopService(intent)
-    }
-
-    private fun checkOverlayPermission() {
+    private fun checkOverlayPermission(): Boolean {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (!Settings.canDrawOverlays(this)) {
                 ToastUtil.show(text = "请授予${AppInfoUtil.appName}悬浮窗权限")
                 val uri = Uri.parse("package:$packageName")
                 val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, uri)
                 startActivityForResult(intent, REQUEST_CODE)
+                return false
             }
         }
+        return true
     }
 
     @RequiresApi(Build.VERSION_CODES.M)

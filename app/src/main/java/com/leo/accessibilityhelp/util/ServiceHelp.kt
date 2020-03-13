@@ -13,7 +13,7 @@ import com.leo.system.ContextHelp
 import com.leo.system.LogUtil
 
 class ServiceHelp {
-    val TAG = "ServiceHelp"
+    private val TAG = "ServiceHelp"
     private val RECONNECT_ID = 1001
     private var mBinder: CstService.LocalBinder? = null
     private val mHandler: Handler = Handler(Looper.getMainLooper(), Handler.Callback { msg ->
