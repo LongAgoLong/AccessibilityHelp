@@ -10,7 +10,6 @@ import android.graphics.PixelFormat
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
-import android.text.TextUtils
 import android.view.Gravity
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -25,14 +24,13 @@ import com.leo.system.LogUtil
 
 
 class CstService : Service(), IActivityInfoImpl {
-    var mCurrentActivity: ActivityInfo? = null
+    private var mCurrentActivity: ActivityInfo? = null
 
-    var mParams: WindowManager.LayoutParams? = null
-    var mWindowManager: WindowManager? = null
+    private var mParams: WindowManager.LayoutParams? = null
+    private var mWindowManager: WindowManager? = null
     var mFloatingView: FloatingView? = null
     var mIsInterceptAD: Boolean = false
-    var mMatchCount: Int = 0
-    val binder: LocalBinder = LocalBinder()
+    private val binder: LocalBinder = LocalBinder()
 
     companion object {
         const val NOTIFY_ID = 10086
@@ -40,16 +38,6 @@ class CstService : Service(), IActivityInfoImpl {
         const val NOTIFY_CHANNEL_NAME = "前台服务"
 
         const val TAG = "CstService"
-        const val TYPE = "type"
-        const val TYPE_COMMAND = 101
-        const val TYPE_INTERCEPT_AD = 102
-
-        const val KEY_COMMAND = "command"
-        const val COMMAND_OPEN = "COMMAND_OPEN"
-        const val COMMAND_CLOSE = "COMMAND_CLOSE"
-        const val KEY_INTERCEPT_AD = "intercept_ad"
-        const val MATCH_COUNT = 2
-        val REGEX = Regex("[0-9]{0,1}(s|S|\\s|)(\\n|)(跳过|跳过广告|关闭广告)(\\n|)[0-9]{0,1}(s|S|\\s|)")
     }
 
     override fun onCreate() {
@@ -144,52 +132,6 @@ class CstService : Service(), IActivityInfoImpl {
             mWindowManager?.removeView(mFloatingView)
             mFloatingView = null
         }
-    }
-
-    private fun matchNodeInfo(node: AccessibilityNodeInfo?): AccessibilityNodeInfo? {
-        if (null == node) {
-            LogUtil.d(TAG, "matchNodeInfo() null == mRootNodeInfo")
-            return null
-        }
-        if (!TextUtils.isEmpty(node.text) && node.text.contains(REGEX)) {
-            LogUtil.d(TAG, "matchNodeInfo() match text is ${node.text}")
-            return node
-        } else {
-            val childCount = node.childCount
-            if (childCount > 0) {
-                for (i in 0 until childCount) {
-                    val tempNode = node.getChild(i)
-                    val targetNode = matchNodeInfo(tempNode)
-                    if (null != targetNode) {
-                        return targetNode
-                    }
-                }
-            } else {
-                return null
-            }
-        }
-        return null
-    }
-
-    /**
-     * 模拟点击策略
-     */
-    @Synchronized
-    private fun canPerformClick(nodeInfo: AccessibilityNodeInfo?): Boolean {
-        if (nodeInfo == null) {
-            LogUtil.i(TAG, "canPerformClick() return false, mMatchCount= $mMatchCount")
-            return false
-        }
-        if (nodeInfo.isClickable) {
-            LogUtil.i(TAG, "canPerformClick() return true, mMatchCount= $mMatchCount")
-            performClick(nodeInfo)
-            return true
-        } else if (mMatchCount < MATCH_COUNT) {
-            mMatchCount++
-            return canPerformClick(nodeInfo.parent)
-        }
-        LogUtil.i(TAG, "mMatchCount = $mMatchCount")
-        return false
     }
 
     /**
