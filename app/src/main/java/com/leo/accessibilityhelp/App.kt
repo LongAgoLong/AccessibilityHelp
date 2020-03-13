@@ -8,7 +8,7 @@ import com.leo.system.enume.LogType
 class App : Application() {
     override fun onCreate() {
         super.onCreate()
-        LogUtil.setType(LogType.VERBOSE)
+        LogUtil.setType(if (BuildConfig.DEBUG) LogType.VERBOSE else LogType.ASSERT)
         ServiceHelp.getInstance().bindService()
     }
 }
