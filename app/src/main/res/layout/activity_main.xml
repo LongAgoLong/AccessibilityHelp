@@ -9,74 +9,106 @@
         android:layout_height="match_parent"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/introTv"
-            style="@style/style_intro_text"
-            android:text="@string/text_intro"
-            app:layout_constraintBottom_toTopOf="@+id/openActivityTrackerBtn"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toRightOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintVertical_chainStyle="packed" />
-
-        <Button
-            android:id="@+id/openActivityTrackerBtn"
-            style="@style/style_btn"
-            android:layout_marginTop="8dp"
-            android:text="@string/text_open_window"
-            app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/introTv" />
-
-        <Button
-            android:id="@+id/closeActivityTrackerBtn"
-            style="@style/style_btn"
-            android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
-            android:text="@string/text_close_window"
-            app:layout_constraintLeft_toRightOf="@+id/openActivityTrackerBtn"
-            app:layout_constraintTop_toTopOf="@+id/openActivityTrackerBtn" />
-
-        <TextView
-            android:id="@+id/introInterceptAdTv"
-            style="@style/style_intro_text"
-            android:layout_marginTop="8dp"
-            android:text="@string/text_intercept_ad"
-            app:layout_constraintLeft_toLeftOf="@+id/introTv"
-            app:layout_constraintTop_toBottomOf="@+id/openActivityTrackerBtn" />
-
-        <Button
-            android:id="@+id/openInterceptAdBtn"
-            style="@style/style_btn"
-            android:layout_marginTop="8dp"
-            android:text="@string/text_open_intercept_ad"
-            app:layout_constraintLeft_toLeftOf="@+id/introTv"
-            app:layout_constraintTop_toBottomOf="@+id/introInterceptAdTv" />
-
-        <Button
-            android:id="@+id/closeInterceptAdBtn"
-            style="@style/style_btn"
-            android:layout_marginStart="12dp"
-            android:layout_marginLeft="12dp"
-            android:text="@string/text_close_intercept_ad"
-            app:layout_constraintLeft_toRightOf="@+id/openInterceptAdBtn"
-            app:layout_constraintTop_toTopOf="@+id/openInterceptAdBtn" />
-
-
         <Button
             android:id="@+id/checkPermissionBtn"
-            style="@style/style_btn"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/bg_btn"
+            android:elevation="10dp"
             android:text="@string/text_check_permission"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
             app:layout_constraintLeft_toLeftOf="parent"
-            app:layout_constraintRight_toLeftOf="@+id/closeServiceBtn" />
+            app:layout_constraintRight_toLeftOf="@+id/closeServiceBtn"
+            app:layout_constraintTop_toTopOf="parent" />
 
         <Button
             android:id="@+id/closeServiceBtn"
-            style="@style/style_btn"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginLeft="6dp"
+            android:background="@drawable/bg_btn"
+            android:elevation="10dp"
             android:text="@string/text_close_service"
-            app:layout_constraintBottom_toBottomOf="parent"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
             app:layout_constraintLeft_toRightOf="@+id/checkPermissionBtn"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/checkPermissionBtn" />
+
+        <Button
+            android:id="@+id/openActivityTrackerBtn"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/bg_btn"
+            android:elevation="10dp"
+            android:text="@string/text_open_window"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/closeActivityTrackerBtn"
+            app:layout_constraintTop_toBottomOf="@+id/checkPermissionBtn" />
+
+        <Button
+            android:id="@+id/closeActivityTrackerBtn"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginLeft="6dp"
+            android:background="@drawable/bg_btn"
+            android:elevation="10dp"
+            android:text="@string/text_close_window"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            app:layout_constraintLeft_toRightOf="@+id/openActivityTrackerBtn"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/openActivityTrackerBtn" />
+
+        <Button
+            android:id="@+id/openInterceptAdBtn"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginTop="12dp"
+            android:layout_marginEnd="6dp"
+            android:layout_marginRight="6dp"
+            android:background="@drawable/bg_btn"
+            android:elevation="10dp"
+            android:text="@string/text_open_intercept_ad"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toLeftOf="@+id/closeInterceptAdBtn"
+            app:layout_constraintTop_toBottomOf="@+id/openActivityTrackerBtn" />
+
+        <Button
+            android:id="@+id/closeInterceptAdBtn"
+            android:layout_width="0dp"
+            android:layout_height="120dp"
+            android:layout_marginStart="6dp"
+            android:layout_marginLeft="6dp"
+            android:background="@drawable/bg_btn"
+            android:elevation="10dp"
+            android:text="@string/text_close_intercept_ad"
+            android:textColor="@android:color/white"
+            android:textSize="18sp"
+            app:layout_constraintLeft_toRightOf="@+id/openInterceptAdBtn"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/openInterceptAdBtn" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="15dp"
+            android:text="@string/tip_permission"
+            android:textColor="@color/colorAccent"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </layout>

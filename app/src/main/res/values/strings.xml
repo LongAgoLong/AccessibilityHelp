@@ -1,12 +1,11 @@
 <resources>
     <string name="app_name">AccessibilityHelp</string>
-    <string name="text_intro">1、一个全局悬浮窗，显示栈顶Activity信息\n(开启无障碍服务以及悬浮窗权限)</string>
-    <string name="text_intercept_ad">2、开启拦截开屏广告功能</string>
-    <string name="accessibility_service_description">开启功能, 可以实现跟踪栈顶Activity功能</string>
-    <string name="text_open_intercept_ad">开启开屏广告拦截</string>
-    <string name="text_close_intercept_ad">关闭开屏广告拦截</string>
-    <string name="text_close_window">关闭悬浮窗</string>
-    <string name="text_open_window">开启悬浮窗</string>
+    <string name="accessibility_service_description">开启功能, 可以实现以下功能：\n①跟踪栈顶Activity功能\n②跳过app启动广告</string>
+    <string name="text_open_intercept_ad">开启\n开屏广告拦截</string>
+    <string name="text_close_intercept_ad">关闭\n开屏广告拦截</string>
+    <string name="text_close_window">关闭activity\n信息悬浮窗</string>
+    <string name="text_open_window">开启activity\n信息悬浮窗</string>
     <string name="text_close_service">关闭服务</string>
-    <string name="text_check_permission">检测权限</string>
+    <string name="text_check_permission">①检测\n无障碍权限</string>
+    <string name="tip_permission">必须先授予无障碍服务权限</string>
 </resources>

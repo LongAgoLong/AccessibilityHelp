@@ -64,7 +64,7 @@ class AccessibilityHelp {
                 ENABLED_ACCESSIBILITY_SERVICES
             )
             services?.run {
-               return toLowerCase().contains(context.packageName.toLowerCase())
+                return toLowerCase().contains(context.packageName.toLowerCase())
             }
         }
         return false

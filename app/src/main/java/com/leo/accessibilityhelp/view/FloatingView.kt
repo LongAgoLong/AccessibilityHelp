@@ -1,7 +1,6 @@
 package com.leo.accessibilityhelp.view
 
 import android.content.Context
-import android.content.Intent
 import android.graphics.Point
 import android.util.Log
 import android.view.MotionEvent
@@ -10,8 +9,6 @@ import android.view.WindowManager
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
-import android.widget.Toast
-import com.leo.accessibilityhelp.CstService
 import com.leo.accessibilityhelp.R
 
 /**
@@ -26,6 +23,7 @@ class FloatingView(private val mContext: Context) : LinearLayout(mContext) {
 
     lateinit var preP: Point
     lateinit var curP: Point
+    var mCloseCallback: OnCloseCallback? = null
 
     init {
         initView()
@@ -38,13 +36,7 @@ class FloatingView(private val mContext: Context) : LinearLayout(mContext) {
         mIvClose = findViewById(R.id.iv_close)
 
         mIvClose!!.setOnClickListener {
-            Toast.makeText(mContext, "关闭悬浮框", Toast.LENGTH_SHORT).show()
-            val intent = Intent(mContext, CstService::class.java)
-            intent.putExtra(CstService.TYPE, CstService.TYPE_COMMAND)
-            intent.putExtra(
-                CstService.KEY_COMMAND, CstService.COMMAND_CLOSE
-            )
-            mContext.startService(intent)
+            mCloseCallback?.onClose()
         }
     }
 
@@ -74,6 +66,14 @@ class FloatingView(private val mContext: Context) : LinearLayout(mContext) {
         }
 
         return false
+    }
+
+    fun setOnCloseCallback(callback: OnCloseCallback) {
+        mCloseCallback = callback
+    }
+
+    interface OnCloseCallback {
+        fun onClose()
     }
 
     companion object {

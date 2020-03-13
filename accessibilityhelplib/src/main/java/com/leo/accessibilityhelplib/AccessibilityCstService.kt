@@ -2,9 +2,7 @@ package com.leo.accessibilityhelplib
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
-import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
 import com.leo.system.LogUtil
-import java.util.concurrent.TimeUnit
 
 class AccessibilityCstService : AccessibilityService() {
     companion object {

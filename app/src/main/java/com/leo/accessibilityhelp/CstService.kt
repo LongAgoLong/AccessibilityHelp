@@ -1,9 +1,13 @@
 package com.leo.accessibilityhelp
 
 import android.app.Service
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
+import android.content.pm.PackageManager
 import android.graphics.PixelFormat
+import android.os.Binder
 import android.os.Build
 import android.os.IBinder
 import android.text.TextUtils
@@ -12,27 +16,28 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.leo.accessibilityhelp.view.FloatingView
+import com.leo.accessibilityhelp.view.FloatingView.OnCloseCallback
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
 import com.leo.commonutil.app.AppInfoUtil
-import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
-import com.leo.commonutil.notify.NotificationCompatUtil
-import com.leo.commonutil.notify.ToastUtil
+import com.leo.commonutil.notify.NotificationHelp
 import com.leo.system.LogUtil
-import java.lang.Exception
-import java.util.concurrent.Callable
-import java.util.concurrent.TimeUnit
 
 
 class CstService : Service(), IActivityInfoImpl {
+    var mCurrentActivity: ActivityInfo? = null
+
     var mParams: WindowManager.LayoutParams? = null
     var mWindowManager: WindowManager? = null
     var mFloatingView: FloatingView? = null
     var mIsInterceptAD: Boolean = false
     var mMatchCount: Int = 0
+    val binder: LocalBinder = LocalBinder()
 
     companion object {
         const val NOTIFY_ID = 10086
+        const val NOTIFY_CHANNEL_ID = "ID10086"
+        const val NOTIFY_CHANNEL_NAME = "前台服务"
 
         const val TAG = "CstService"
         const val TYPE = "type"
@@ -44,7 +49,14 @@ class CstService : Service(), IActivityInfoImpl {
         const val COMMAND_CLOSE = "COMMAND_CLOSE"
         const val KEY_INTERCEPT_AD = "intercept_ad"
         const val MATCH_COUNT = 2
-        val REGEX = Regex("[0-9]{0,1}(s|S|\\s|)(\\n|)(跳过|关闭广告)(\\n|)[0-9]{0,1}(s|S|\\s|)")
+        val REGEX = Regex("[0-9]{0,1}(s|S|\\s|)(\\n|)(跳过|跳过广告|关闭广告)(\\n|)[0-9]{0,1}(s|S|\\s|)")
+    }
+
+    override fun onCreate() {
+        super.onCreate()
+        foreground()
+        initTrackerWindowManager()
+        AccessibilityHelp.getInstance().mIActivityInfoImpl = this@CstService
     }
 
     override fun onDestroy() {
@@ -56,53 +68,39 @@ class CstService : Service(), IActivityInfoImpl {
     }
 
     override fun onBind(intent: Intent?): IBinder? {
-        return null
-    }
-
-    override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        foreground()
-        intent?.let {
-            LogUtil.d(TAG, "onStartCommand")
-            initTrackerWindowManager()
-            AccessibilityHelp.getInstance().mIActivityInfoImpl = this@CstService
-            when (it.getIntExtra(TYPE, TYPE_COMMAND)) {
-                TYPE_COMMAND -> {
-                    val command = it.getStringExtra(KEY_COMMAND)
-                    command?.let { s ->
-                        if (TextUtils.equals(s, COMMAND_OPEN)) {
-                            addView()
-                        } else if (TextUtils.equals(s, COMMAND_CLOSE)) {
-                            removeView()
-                        }
-                    }
-                }
-                TYPE_INTERCEPT_AD -> {
-                    mIsInterceptAD = it.getBooleanExtra(KEY_INTERCEPT_AD, false)
-                    if (mIsInterceptAD) {
-                        ToastUtil.show(this, "已开启开屏广告拦截功能")
-                    } else {
-                        ToastUtil.show(this, "已关闭开屏广告拦截功能")
-                    }
-                }
-                else -> {
-                }
-            }
-        }
-        return super.onStartCommand(intent, flags, startId)
+        return binder
     }
 
     private fun foreground() {
-        val ordinaryNotification = NotificationCompatUtil.getInstance(this)
-            .createOrdinaryNotification(
+        val ordinaryNotification = NotificationHelp.getInstance(this)
+            .ordinaryNotification(
                 this,
                 null,
-                AppInfoUtil.getAppName(),
-                "${AppInfoUtil.getAppName()}的前台服务",
+                AppInfoUtil.appName,
+                "${AppInfoUtil.appName}的前台服务",
                 R.drawable.ic_launcher_foreground,
-                null,
-                false
+                bigContent = "",
+                channelId = NOTIFY_CHANNEL_ID,
+                channelName = NOTIFY_CHANNEL_NAME
             )
         startForeground(NOTIFY_ID, ordinaryNotification)
+    }
+
+    override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            tryGetActivity(event)
+            mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
+        }
+        mCurrentActivity ?: return
+        val nodeList = findNodeList(event)
+        if (nodeList.isNullOrEmpty()) {
+            return
+        }
+        for (node in nodeList) {
+            if (performClick(node)) {
+                break
+            }
+        }
     }
 
     private fun initTrackerWindowManager() {
@@ -129,6 +127,11 @@ class CstService : Service(), IActivityInfoImpl {
             synchronized(lock = CstService::class, block = {
                 if (null == mFloatingView) {
                     mFloatingView = FloatingView(this@CstService)
+                    mFloatingView!!.setOnCloseCallback(callback = object : OnCloseCallback {
+                        override fun onClose() {
+                            removeView()
+                        }
+                    })
                     mFloatingView!!.layoutParams = mParams
                     mWindowManager?.addView(mFloatingView, mParams)
                 }
@@ -140,55 +143,6 @@ class CstService : Service(), IActivityInfoImpl {
         mFloatingView?.let {
             mWindowManager?.removeView(mFloatingView)
             mFloatingView = null
-        }
-    }
-
-    override fun onAccessibilityEvent(event: AccessibilityEvent) {
-//        when (event.eventType) {
-//            AccessibilityEvent.TYPE_WINDOW_CONTENT_CHANGED -> {
-//                LogUtil.e(TAG, "eventType is TYPE_WINDOW_CONTENT_CHANGED")
-//            }
-//            AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED -> {
-//                LogUtil.e(TAG, "eventType is TYPE_WINDOW_STATE_CHANGED")
-//            }
-//            AccessibilityEvent.TYPE_WINDOWS_CHANGED -> {
-//                LogUtil.e(TAG, "eventType is TYPE_WINDOWS_CHANGED")
-//            }
-//            AccessibilityEvent.TYPE_VIEW_HOVER_ENTER -> {
-//                LogUtil.e(TAG, "eventType is TYPE_VIEW_HOVER_ENTER")
-//            }
-//            AccessibilityEvent.TYPE_VIEW_HOVER_EXIT -> {
-//                LogUtil.e(TAG, "eventType is TYPE_VIEW_HOVER_EXIT")
-//            }
-//        }
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
-        } else if (event.eventType == AccessibilityEvent.TYPE_WINDOWS_CHANGED) {
-            AccessibilityHelp.getInstance().nodeInfo.let {
-                if (!mIsInterceptAD) {
-                    return
-                }
-                /**
-                 * 1、优雅的关闭，用 shutdown()
-                 * 2、想立马关闭，并得到未执行任务列表，用shutdownNow()
-                 * 3、优雅的关闭，并允许关闭声明后新任务能提交，用 awaitTermination()
-                 * 4、关闭功能 【从强到弱】 依次是：shuntdownNow() > shutdown() > awaitTermination()
-                 */
-                ThreadPoolHelp.getThreadPool().awaitTermination(100, TimeUnit.MILLISECONDS)
-                val future =
-                    ThreadPoolHelp.getThreadPool().submit(object : Callable<AccessibilityNodeInfo> {
-                        override fun call(): AccessibilityNodeInfo? {
-                            return matchNodeInfo(it)
-                        }
-                    })
-                try {
-                    val targetNode = future.get(2, TimeUnit.SECONDS)
-                    mMatchCount = 0
-                    canPerformClick(targetNode)
-                } catch (e: Exception) {
-//                    e.printStackTrace()
-                }
-            }
         }
     }
 
@@ -247,6 +201,7 @@ class CstService : Service(), IActivityInfoImpl {
             return false
         }
         if (nodeInfo.isClickable) {
+//            LogUtil.d(TAG, "nodeInfo text is ${nodeInfo.text}")
             return nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
         } else {
             val result = performClick(nodeInfo.parent)
@@ -255,5 +210,43 @@ class CstService : Service(), IActivityInfoImpl {
             }
         }
         return false
+    }
+
+    private fun tryGetActivity(event: AccessibilityEvent): ActivityInfo? {
+        val componentName = ComponentName(event.packageName.toString(), event.className.toString())
+        try {
+            mCurrentActivity = packageManager.getActivityInfo(componentName, 0)
+        } catch (e: PackageManager.NameNotFoundException) {
+        }
+        return mCurrentActivity
+    }
+
+    private val chars = arrayOf("关闭广告", "跳过")
+    private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {
+        var nodeList: List<AccessibilityNodeInfo>? = null
+        for (s in chars) {
+            if (!event.source?.findAccessibilityNodeInfosByText(s).also {
+                    nodeList = it
+                }.isNullOrEmpty()) {
+                break
+            }
+        }
+        return nodeList
+    }
+
+    inner class LocalBinder : Binder() {
+        fun switchFloatingViewState(b: Boolean): Boolean {
+            if (b && mFloatingView == null) {
+                addView()
+            } else if (!b && mFloatingView != null) {
+                removeView()
+            }
+            return true
+        }
+
+        fun switchInterceptAd(b: Boolean): Boolean {
+            mIsInterceptAD = b
+            return true
+        }
     }
 }
