@@ -7,5 +7,5 @@
     <string name="text_open_window">开启activity\n信息悬浮窗</string>
     <string name="text_close_service">关闭服务</string>
     <string name="text_check_permission">①检测\n无障碍权限</string>
-    <string name="tip_permission">必须先授予无障碍服务权限</string>
+    <string name="tip_permission">使用须知：\n1、必须先授予无障碍服务权限\n2、应用设置允许自启动</string>
 </resources>
