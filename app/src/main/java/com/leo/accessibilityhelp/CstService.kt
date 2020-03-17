@@ -14,6 +14,7 @@ import android.view.Gravity
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import androidx.annotation.RequiresApi
 import com.leo.accessibilityhelp.view.FloatingView
 import com.leo.accessibilityhelp.view.FloatingView.OnCloseCallback
 import com.leo.accessibilityhelplib.AccessibilityHelp
@@ -48,7 +49,6 @@ class CstService : Service(), IActivityInfoImpl {
     }
 
     override fun onDestroy() {
-        LogUtil.i(TAG, "onDestroy")
         removeView()
         AccessibilityHelp.getInstance().mIActivityInfoImpl = null
         stopForeground(true)
@@ -74,6 +74,7 @@ class CstService : Service(), IActivityInfoImpl {
         startForeground(NOTIFY_ID, ordinaryNotification)
     }
 
+    @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             tryGetActivity(event)
@@ -143,7 +144,17 @@ class CstService : Service(), IActivityInfoImpl {
             return false
         }
         if (nodeInfo.isClickable) {
-//            LogUtil.d(TAG, "nodeInfo text is ${nodeInfo.text}")
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+                LogUtil.d(
+                    TAG,
+                    "performClick() nodeInfo text is ${nodeInfo.text} ; id is ${nodeInfo.viewIdResourceName}"
+                )
+            } else {
+                LogUtil.d(
+                    TAG,
+                    "performClick() nodeInfo text is ${nodeInfo.text}"
+                )
+            }
             return nodeInfo.performAction(AccessibilityNodeInfo.ACTION_CLICK)
         } else {
             val result = performClick(nodeInfo.parent)
@@ -164,6 +175,11 @@ class CstService : Service(), IActivityInfoImpl {
     }
 
     private val chars = arrayOf("关闭广告", "跳过")
+    private val skipIds = arrayOf(
+        "com.xiaomi.shop:id/skip",
+        "com.cmbchina.ccd.pluto.cmbActivity:id/img_cancel"
+    )
+
     private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {
         var nodeList: List<AccessibilityNodeInfo>? = null
         for (s in chars) {
@@ -171,6 +187,15 @@ class CstService : Service(), IActivityInfoImpl {
                     nodeList = it
                 }.isNullOrEmpty()) {
                 break
+            }
+        }
+        if (nodeList.isNullOrEmpty() && Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
+            for (id in skipIds) {
+                if (!event.source?.findAccessibilityNodeInfosByViewId(id).also {
+                        nodeList = it
+                    }.isNullOrEmpty()) {
+                    break
+                }
             }
         }
         return nodeList
