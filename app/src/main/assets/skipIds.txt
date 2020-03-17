@@ -1,0 +1,2 @@
+com.xiaomi.shop:id/skip#
+com.cmbchina.ccd.pluto.cmbActivity:id/img_cancel

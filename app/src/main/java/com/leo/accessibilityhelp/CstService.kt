@@ -10,6 +10,7 @@ import android.graphics.PixelFormat
 import android.os.Binder
 import android.os.Build
 import android.os.IBinder
+import android.text.TextUtils
 import android.view.Gravity
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
@@ -22,10 +23,13 @@ import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
 import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.NotificationHelp
 import com.leo.system.LogUtil
+import com.leo.system.ResHelp
 
 
 class CstService : Service(), IActivityInfoImpl {
     private var mCurrentActivity: ActivityInfo? = null
+    private val skipChars = mutableSetOf<String>()
+    private val skipIds = mutableSetOf<String>()
 
     private var mParams: WindowManager.LayoutParams? = null
     private var mWindowManager: WindowManager? = null
@@ -39,6 +43,8 @@ class CstService : Service(), IActivityInfoImpl {
         const val NOTIFY_CHANNEL_NAME = "前台服务"
 
         const val TAG = "CstService"
+        private const val AD_IDS = "skipIds.txt"
+        private const val AD_TXTS = "skipTexts.txt"
     }
 
     override fun onCreate() {
@@ -46,6 +52,23 @@ class CstService : Service(), IActivityInfoImpl {
         foreground()
         initTrackerWindowManager()
         AccessibilityHelp.getInstance().mIActivityInfoImpl = this@CstService
+        /**
+         * 初始化
+         */
+        val txts = ResHelp.getFileFromAssets(AD_TXTS)
+        if (!TextUtils.isEmpty(txts)) {
+            val list = txts!!.split("#")
+            if (!list.isNullOrEmpty()) {
+                skipChars.addAll(list)
+            }
+        }
+        val ids = ResHelp.getFileFromAssets(AD_IDS)
+        if (!TextUtils.isEmpty(ids)) {
+            val list = ids!!.split("#")
+            if (!list.isNullOrEmpty()) {
+                skipIds.addAll(list)
+            }
+        }
     }
 
     override fun onDestroy() {
@@ -176,15 +199,9 @@ class CstService : Service(), IActivityInfoImpl {
         return mCurrentActivity
     }
 
-    private val chars = arrayOf("关闭广告", "跳过")
-    private val skipIds = arrayOf(
-        "com.xiaomi.shop:id/skip",
-        "com.cmbchina.ccd.pluto.cmbActivity:id/img_cancel"
-    )
-
     private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {
         var nodeList: List<AccessibilityNodeInfo>? = null
-        for (s in chars) {
+        for (s in skipChars) {
             if (!event.source?.findAccessibilityNodeInfosByText(s).also {
                     nodeList = it
                 }.isNullOrEmpty()) {
