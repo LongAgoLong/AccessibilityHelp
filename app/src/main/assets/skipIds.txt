@@ -1,2 +1,3 @@
 com.xiaomi.shop:id/skip#
-com.cmbchina.ccd.pluto.cmbActivity:id/img_cancel
+com.cmbchina.ccd.pluto.cmbActivity:id/img_cancel#
+com.zhaopin.social:id/countdownProgressView
