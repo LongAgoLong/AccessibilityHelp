@@ -95,19 +95,21 @@ class CstService : Service(), IActivityInfoImpl {
     private fun initTrackerWindowManager() {
         mWindowManager = this@CstService.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         val params = WindowManager.LayoutParams()
-        params.x = 0
-        params.y = 0
-        params.width = WindowManager.LayoutParams.WRAP_CONTENT
-        params.height = WindowManager.LayoutParams.WRAP_CONTENT
-        params.gravity = Gravity.START or Gravity.TOP
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-            params.type = WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
-        } else {
-            params.type = WindowManager.LayoutParams.TYPE_PHONE
+        params.run {
+            x = 0
+            y = 0
+            width = WindowManager.LayoutParams.WRAP_CONTENT
+            height = WindowManager.LayoutParams.WRAP_CONTENT
+            gravity = Gravity.START or Gravity.TOP
+            type = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                WindowManager.LayoutParams.TYPE_APPLICATION_OVERLAY
+            } else {
+                WindowManager.LayoutParams.TYPE_PHONE
+            }
+            format = PixelFormat.RGBA_8888
+            flags =
+                WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         }
-        params.format = PixelFormat.RGBA_8888
-        params.flags =
-            WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         mParams = params
     }
 
@@ -130,9 +132,9 @@ class CstService : Service(), IActivityInfoImpl {
 
     private fun removeView() {
         mFloatingView?.let {
-            mWindowManager?.removeView(mFloatingView)
-            mFloatingView = null
+            mWindowManager?.removeView(it)
         }
+        mFloatingView = null
     }
 
     /**
