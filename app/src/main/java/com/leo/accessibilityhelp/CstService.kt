@@ -24,6 +24,7 @@ import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.NotificationHelp
 import com.leo.system.LogUtil
 import com.leo.system.ResHelp
+import java.util.*
 
 
 class CstService : Service(), IActivityInfoImpl {
@@ -109,6 +110,16 @@ class CstService : Service(), IActivityInfoImpl {
             return
         }
         for (node in nodeList) {
+            if (!TextUtils.isEmpty(node.text)) {
+                // 防止会员跳过的按钮
+                val s = node.text.toString().toLowerCase(Locale.getDefault())
+                if (s.contains("vip")
+                    || s.contains("会员")
+                    || s.contains("會員")
+                ) {
+                    continue
+                }
+            }
             if (performClick(node)) {
                 break
             }

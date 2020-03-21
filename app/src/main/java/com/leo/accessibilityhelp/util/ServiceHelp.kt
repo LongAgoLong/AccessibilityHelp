@@ -16,6 +16,7 @@ class ServiceHelp {
     private val TAG = "ServiceHelp"
     private val RECONNECT_ID = 1001
     private var mBinder: CstService.LocalBinder? = null
+    val deathProxy = DeathProxy()
     private val mHandler: Handler = Handler(Looper.getMainLooper(), Handler.Callback { msg ->
         when (msg.what) {
             RECONNECT_ID -> {
@@ -54,11 +55,10 @@ class ServiceHelp {
     private val mConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName?) {
             mBinder = null
-            retryConnect()
+//            retryConnect()
         }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
-            val deathProxy = DeathProxy()
             service?.linkToDeath(deathProxy, 0);
             mBinder = service as CstService.LocalBinder
         }
@@ -69,7 +69,16 @@ class ServiceHelp {
     }
 
     fun unBindService() {
-        ContextHelp.context.unbindService(mConnection)
+        if (null != mBinder) {
+            synchronized(this) {
+                if (null == mBinder) {
+                    return@synchronized
+                }
+                mBinder!!.unlinkToDeath(deathProxy, 0)
+                ContextHelp.context.unbindService(mConnection)
+                mBinder = null
+            }
+        }
     }
 
     private fun bind() {

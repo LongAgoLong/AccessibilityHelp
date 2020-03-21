@@ -26,6 +26,12 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         initView()
+        ServiceHelp.getInstance().bindService()
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        ServiceHelp.getInstance().unBindService()
     }
 
     private fun initView() {
@@ -92,7 +98,7 @@ class MainActivity : AppCompatActivity() {
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE && !Settings.canDrawOverlays(this)) {
-            checkOverlayPermission()
+            ToastUtil.show(text = "无法获取悬浮窗权限！！！")
         }
     }
 }

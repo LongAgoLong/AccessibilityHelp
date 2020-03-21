@@ -1,3 +1,9 @@
 com.xiaomi.shop:id/skip#
 com.cmbchina.ccd.pluto.cmbActivity:id/img_cancel#
 com.zhaopin.social:id/countdownProgressView
+com.mgksapps.muguakanshu:id/ki
+com.wuba:id/lly_ads
+com.dangdang.buy2:id/adjump_layout
+cn.damai:id/homepage_advert_pb
+com.qiyi.video:id/unused_res_a
+com.miui.systemAdSolution:id/view_skip
