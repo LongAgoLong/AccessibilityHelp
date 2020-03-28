@@ -21,6 +21,7 @@ import com.leo.accessibilityhelp.view.FloatingView.OnCloseCallback
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
 import com.leo.commonutil.app.AppInfoUtil
+import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
 import com.leo.commonutil.notify.NotificationHelp
 import com.leo.system.LogUtil
 import com.leo.system.ResHelp
@@ -61,25 +62,31 @@ class CstService : Service(), IActivityInfoImpl {
         /**
          * 初始化
          */
-        val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
-        if (!TextUtils.isEmpty(adTexts)) {
-            val list = adTexts!!.split("#")
-            if (!list.isNullOrEmpty()) {
-                skipChars.addAll(list)
+        ThreadPoolHelp.execute {
+            val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
+            if (!TextUtils.isEmpty(adTexts)) {
+                val list = adTexts!!.split("#")
+                if (!list.isNullOrEmpty()) {
+                    skipChars.addAll(list)
+                }
             }
         }
-        val ids = ResHelp.getFileFromAssets(AD_IDS)
-        if (!TextUtils.isEmpty(ids)) {
-            val list = ids!!.split("#")
-            if (!list.isNullOrEmpty()) {
-                skipIds.addAll(list)
+        ThreadPoolHelp.execute {
+            val ids = ResHelp.getFileFromAssets(AD_IDS)
+            if (!TextUtils.isEmpty(ids)) {
+                val list = ids!!.split("#")
+                if (!list.isNullOrEmpty()) {
+                    skipIds.addAll(list)
+                }
             }
         }
-        val actWhiteList = ResHelp.getFileFromAssets(AD_ACT_WHITE)
-        actWhiteList?.run {
-            val whiteList = this.split("#")
-            if (!whiteList.isNullOrEmpty()) {
-                activityBlackList.addAll(whiteList)
+        ThreadPoolHelp.execute {
+            val actWhiteList = ResHelp.getFileFromAssets(AD_ACT_WHITE)
+            actWhiteList?.run {
+                val whiteList = this.split("#")
+                if (!whiteList.isNullOrEmpty()) {
+                    activityBlackList.addAll(whiteList)
+                }
             }
         }
     }
@@ -136,10 +143,7 @@ class CstService : Service(), IActivityInfoImpl {
             if (!TextUtils.isEmpty(node.text)) {
                 // 防止会员跳过的按钮
                 val s = node.text.toString().toLowerCase(Locale.getDefault())
-                if (s.contains("vip")
-                    || s.contains("会员")
-                    || s.contains("會員")
-                ) {
+                if (s.contains("vip") || s.contains("会员") || s.contains("會員")) {
                     continue
                 }
             }
