@@ -48,7 +48,7 @@ class CstService : Service(), IActivityInfoImpl {
         const val TAG = "CstService"
         private const val AD_IDS = "skipIds.txt"
         private const val AD_TEXTS = "skipTexts.txt"
-        private const val AD_ACT_WHITE = "tv.danmaku.bili.MainActivityV2"
+        private const val AD_ACT_WHITE = "activityBlackList.txt"
 
         private const val MAX_CHECK_COUNT = 2
     }
