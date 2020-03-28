@@ -72,6 +72,7 @@ class MainActivity : AppCompatActivity() {
         }
         mBinding.closeServiceBtn.setOnClickListener {
             ServiceHelp.getInstance().unBindService()
+            finish()
         }
     }
 
