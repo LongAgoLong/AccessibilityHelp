@@ -50,7 +50,7 @@ class CstService : Service(), IActivityInfoImpl {
         private const val AD_TEXTS = "skipTexts.txt"
         private const val AD_ACT_WHITE = "activityBlackList.txt"
 
-        private const val MAX_CHECK_COUNT = 2
+        private const val MAX_CHECK_COUNT = 3
     }
 
     override fun onCreate() {
@@ -112,8 +112,8 @@ class CstService : Service(), IActivityInfoImpl {
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
+        tryGetActivity(event)
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            tryGetActivity(event)
             mFloatingView?.updateInfo(
                 event.packageName.toString(),
                 mCurrentActivity?.name ?: event.className.toString()
