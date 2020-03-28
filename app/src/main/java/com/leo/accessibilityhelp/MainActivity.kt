@@ -72,7 +72,7 @@ class MainActivity : AppCompatActivity() {
         }
         mBinding.closeServiceBtn.setOnClickListener {
             ServiceHelp.getInstance().unBindService()
-            finish()
+            android.os.Process.killProcess(android.os.Process.myPid())
         }
     }
 
