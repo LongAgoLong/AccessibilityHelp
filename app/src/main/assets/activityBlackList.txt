@@ -1,0 +1,3 @@
+tv.danmaku.bili.MainActivityV2#
+com.bilibili.bangumi.ui.page.detail.BangumiDetailActivityV2#
+com.bilibili.bililive.videoliveplayer.ui.roomv3.LiveRoomActivityV3

@@ -26,12 +26,6 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
         initView()
-        ServiceHelp.getInstance().bindService()
-    }
-
-    override fun onDestroy() {
-        super.onDestroy()
-        ServiceHelp.getInstance().unBindService()
     }
 
     private fun initView() {

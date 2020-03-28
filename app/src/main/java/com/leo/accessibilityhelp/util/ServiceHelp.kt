@@ -13,8 +13,6 @@ import com.leo.system.ContextHelp
 import com.leo.system.LogUtil
 
 class ServiceHelp {
-    private val TAG = "ServiceHelp"
-    private val RECONNECT_ID = 1001
     private var mBinder: CstService.LocalBinder? = null
     val deathProxy = DeathProxy()
     private val mHandler: Handler = Handler(Looper.getMainLooper(), Handler.Callback { msg ->
@@ -27,6 +25,9 @@ class ServiceHelp {
     })
 
     companion object {
+        private const val TAG = "ServiceHelp"
+        private const val RECONNECT_ID = 1001
+
         private var instance: ServiceHelp? = null
         fun getInstance(): ServiceHelp {
             return instance ?: synchronized(this) {
@@ -37,6 +38,7 @@ class ServiceHelp {
 
     inner class DeathProxy : IBinder.DeathRecipient {
         override fun binderDied() {
+            LogUtil.e(TAG, "binderDied()")
             mBinder = null
             retryConnect()
         }
@@ -54,11 +56,14 @@ class ServiceHelp {
 
     private val mConnection = object : ServiceConnection {
         override fun onServiceDisconnected(name: ComponentName?) {
+            LogUtil.e(TAG, "onServiceDisconnected()")
+            mBinder?.unlinkToDeath(deathProxy, 0)
             mBinder = null
-//            retryConnect()
+            retryConnect()
         }
 
         override fun onServiceConnected(name: ComponentName?, service: IBinder?) {
+            LogUtil.i(TAG, "onServiceConnected()")
             service?.linkToDeath(deathProxy, 0);
             mBinder = service as CstService.LocalBinder
         }
@@ -74,11 +79,14 @@ class ServiceHelp {
                 if (null == mBinder) {
                     return@synchronized
                 }
+                mBinder!!.switchFloatingViewState(false)
+                mBinder!!.switchInterceptAd(false)
                 mBinder!!.unlinkToDeath(deathProxy, 0)
                 ContextHelp.context.unbindService(mConnection)
                 mBinder = null
             }
         }
+        ToastUtil.show(text = "服务连接已断开")
     }
 
     private fun bind() {

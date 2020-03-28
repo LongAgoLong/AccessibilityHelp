@@ -31,6 +31,8 @@ class CstService : Service(), IActivityInfoImpl {
     private var mCurrentActivity: ActivityInfo? = null
     private val skipChars = mutableSetOf<String>()
     private val skipIds = mutableSetOf<String>()
+    private val activityBlackList = mutableSetOf<String>()
+    private var mCheckCount = 0
 
     private var mParams: WindowManager.LayoutParams? = null
     private var mWindowManager: WindowManager? = null
@@ -45,7 +47,10 @@ class CstService : Service(), IActivityInfoImpl {
 
         const val TAG = "CstService"
         private const val AD_IDS = "skipIds.txt"
-        private const val AD_TXTS = "skipTexts.txt"
+        private const val AD_TEXTS = "skipTexts.txt"
+        private const val AD_ACT_WHITE = "tv.danmaku.bili.MainActivityV2"
+
+        private const val MAX_CHECK_COUNT = 2
     }
 
     override fun onCreate() {
@@ -56,9 +61,9 @@ class CstService : Service(), IActivityInfoImpl {
         /**
          * 初始化
          */
-        val txts = ResHelp.getFileFromAssets(AD_TXTS)
-        if (!TextUtils.isEmpty(txts)) {
-            val list = txts!!.split("#")
+        val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
+        if (!TextUtils.isEmpty(adTexts)) {
+            val list = adTexts!!.split("#")
             if (!list.isNullOrEmpty()) {
                 skipChars.addAll(list)
             }
@@ -68,6 +73,13 @@ class CstService : Service(), IActivityInfoImpl {
             val list = ids!!.split("#")
             if (!list.isNullOrEmpty()) {
                 skipIds.addAll(list)
+            }
+        }
+        val actWhiteList = ResHelp.getFileFromAssets(AD_ACT_WHITE)
+        actWhiteList?.run {
+            val whiteList = this.split("#")
+            if (!whiteList.isNullOrEmpty()) {
+                activityBlackList.addAll(whiteList)
             }
         }
     }
@@ -102,13 +114,24 @@ class CstService : Service(), IActivityInfoImpl {
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
             tryGetActivity(event)
-            mFloatingView?.updateInfo(event.packageName.toString(), event.className.toString())
+            mFloatingView?.updateInfo(
+                event.packageName.toString(),
+                mCurrentActivity?.name ?: event.className.toString()
+            )
         }
+
         mCurrentActivity ?: return
+        // 黑名单的activity也不检测
+        if (!TextUtils.isEmpty(mCurrentActivity!!.name)
+            && activityBlackList.contains(mCurrentActivity!!.name)
+        ) {
+            return
+        }
         val nodeList = findNodeList(event)
         if (nodeList.isNullOrEmpty()) {
             return
         }
+
         for (node in nodeList) {
             if (!TextUtils.isEmpty(node.text)) {
                 // 防止会员跳过的按钮
@@ -120,6 +143,7 @@ class CstService : Service(), IActivityInfoImpl {
                     continue
                 }
             }
+            mCheckCount = 0
             if (performClick(node)) {
                 break
             }
@@ -179,11 +203,16 @@ class CstService : Service(), IActivityInfoImpl {
             LogUtil.i(TAG, "performClick() return false")
             return false
         }
+        mCheckCount++
+        if (mCheckCount > MAX_CHECK_COUNT) {
+            return false
+        }
         if (nodeInfo.isClickable) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 LogUtil.d(
                     TAG,
-                    "performClick() nodeInfo text is ${nodeInfo.text} ; id is ${nodeInfo.viewIdResourceName}"
+                    "performClick() currentActivity is ${mCurrentActivity?.name
+                        ?: "null"} nodeInfo text is ${nodeInfo.text} ; id is ${nodeInfo.viewIdResourceName}"
                 )
             } else {
                 LogUtil.d(
@@ -205,6 +234,7 @@ class CstService : Service(), IActivityInfoImpl {
         val componentName = ComponentName(event.packageName.toString(), event.className.toString())
         try {
             mCurrentActivity = packageManager.getActivityInfo(componentName, 0)
+            LogUtil.e(TAG, "mCurrentActivity name is ${mCurrentActivity?.name ?: "null"}")
         } catch (e: PackageManager.NameNotFoundException) {
         }
         return mCurrentActivity
