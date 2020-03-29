@@ -7,7 +7,7 @@ import android.content.ServiceConnection
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import com.leo.accessibilityhelp.CstService
+import com.leo.accessibilityhelp.service.CstService
 import com.leo.commonutil.notify.ToastUtil
 import com.leo.system.ContextHelp
 import com.leo.system.LogUtil

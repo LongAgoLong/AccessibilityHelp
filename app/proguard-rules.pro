@@ -447,8 +447,8 @@ public void xxxxxx(**);
 
 #---------------------------------自定义View的类------------------------
 #在这下面写自定义View的类的类，没有就去掉这句话！
--keep class com.leo.accessibilityhelp.view.** { *; }
--dontwarn com.leo.accessibilityhelp.view.**
+-keep class com.leo.accessibilityhelp.ui.view.** { *; }
+-dontwarn com.leo.accessibilityhelp.ui.view.**
 #SuperID
 #由*郭宇翔*贡献混淆代码
 #作者Github地址：https://github.com/yourtion

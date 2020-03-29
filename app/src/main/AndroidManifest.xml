@@ -31,13 +31,13 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
         <service
-            android:name=".CstService"
+            android:name=".service.CstService"
             android:enabled="true"
             android:exported="true"
             android:priority="1000"></service>
 
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activity.MainActivity"
             android:launchMode="singleInstance">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

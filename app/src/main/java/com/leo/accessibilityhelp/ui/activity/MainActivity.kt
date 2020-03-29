@@ -1,4 +1,4 @@
-package com.leo.accessibilityhelp
+package com.leo.accessibilityhelp.ui.activity
 
 import android.content.Intent
 import android.net.Uri
@@ -8,6 +8,7 @@ import android.provider.Settings
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
+import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.databinding.ActivityMainBinding
 import com.leo.accessibilityhelp.util.ServiceHelp
 import com.leo.accessibilityhelplib.AccessibilityHelp
@@ -24,7 +25,9 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mBinding = DataBindingUtil.setContentView(this, R.layout.activity_main)
+        mBinding = DataBindingUtil.setContentView(this,
+            R.layout.activity_main
+        )
         initView()
     }
 
@@ -82,7 +85,9 @@ class MainActivity : AppCompatActivity() {
                 ToastUtil.show(text = "请授予${AppInfoUtil.appName}悬浮窗权限")
                 val uri = Uri.parse("package:$packageName")
                 val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, uri)
-                startActivityForResult(intent, REQUEST_CODE)
+                startActivityForResult(intent,
+                    REQUEST_CODE
+                )
                 return false
             }
         }

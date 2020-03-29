@@ -1,4 +1,4 @@
-package com.leo.accessibilityhelp
+package com.leo.accessibilityhelp.service
 
 import android.app.Service
 import android.content.ComponentName
@@ -16,8 +16,9 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
-import com.leo.accessibilityhelp.view.FloatingView
-import com.leo.accessibilityhelp.view.FloatingView.OnCloseCallback
+import com.leo.accessibilityhelp.R
+import com.leo.accessibilityhelp.ui.view.FloatingView
+import com.leo.accessibilityhelp.ui.view.FloatingView.OnCloseCallback
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
 import com.leo.commonutil.app.AppInfoUtil

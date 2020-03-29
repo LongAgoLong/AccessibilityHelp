@@ -1,4 +1,4 @@
-package com.leo.accessibilityhelp.view
+package com.leo.accessibilityhelp.ui.view
 
 import android.content.Context
 import android.graphics.Point
