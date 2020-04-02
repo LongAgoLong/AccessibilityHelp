@@ -34,6 +34,7 @@ class CstService : Service(), IActivityInfoImpl {
     private val skipChars = mutableSetOf<String>()
     private val skipIds = mutableSetOf<String>()
     private val activityBlackList = mutableSetOf<String>()
+    private val gameList = mutableSetOf<String>()
     private var mCheckCount = 0
 
     private var mParams: WindowManager.LayoutParams? = null
@@ -51,6 +52,7 @@ class CstService : Service(), IActivityInfoImpl {
         private const val AD_IDS = "skipIds.txt"
         private const val AD_TEXTS = "skipTexts.txt"
         private const val AD_ACT_WHITE = "activityBlackList.txt"
+        private const val GAMES = "games.txt"
 
         private const val MAX_CHECK_COUNT = 3
     }
@@ -87,6 +89,15 @@ class CstService : Service(), IActivityInfoImpl {
                 val whiteList = this.split("#")
                 if (!whiteList.isNullOrEmpty()) {
                     activityBlackList.addAll(whiteList)
+                }
+            }
+        }
+        ThreadPoolHelp.execute {
+            val gameSts = ResHelp.getFileFromAssets(GAMES)
+            gameSts?.run {
+                val games = this.split("#")
+                if (!games.isNullOrEmpty()) {
+                    gameList.addAll(games)
                 }
             }
         }
@@ -129,6 +140,10 @@ class CstService : Service(), IActivityInfoImpl {
         }
 
         mCurrentActivity ?: return
+        // 游戏界面不拦截
+        if (gameList.contains(event.packageName)) {
+            return
+        }
         // 黑名单的activity也不检测
         if (!TextUtils.isEmpty(mCurrentActivity!!.name)
             && activityBlackList.contains(mCurrentActivity!!.name)
