@@ -24,9 +24,12 @@ import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
 import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
 import com.leo.commonutil.notify.NotificationHelp
+import com.leo.commonutil.storage.IOUtil
+import com.leo.commonutil.storage.SDcardUtil
 import com.leo.system.LogUtil
 import com.leo.system.ResHelp
 import java.util.*
+import kotlin.math.abs
 
 
 class CstService : Service(), IActivityInfoImpl {
@@ -34,7 +37,7 @@ class CstService : Service(), IActivityInfoImpl {
     private val skipChars = mutableSetOf<String>()
     private val skipIds = mutableSetOf<String>()
     private val activityBlackList = mutableSetOf<String>()
-    private val gameList = mutableSetOf<String>()
+    private val pkgBlackList = mutableSetOf<String>()
     private var mCheckCount = 0
 
     private var mParams: WindowManager.LayoutParams? = null
@@ -52,7 +55,8 @@ class CstService : Service(), IActivityInfoImpl {
         private const val AD_IDS = "skipIds.txt"
         private const val AD_TEXTS = "skipTexts.txt"
         private const val AD_ACT_WHITE = "activityBlackList.txt"
-        private const val GAMES = "games.txt"
+        private const val PACKAGES = "pkgBlackList.txt"
+        private const val VERSION_FILE = "version.txt"
 
         private const val MAX_CHECK_COUNT = 3
     }
@@ -66,41 +70,125 @@ class CstService : Service(), IActivityInfoImpl {
          * 初始化
          */
         ThreadPoolHelp.execute {
-            val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
-            if (!TextUtils.isEmpty(adTexts)) {
-                val list = adTexts!!.split("#")
-                if (!list.isNullOrEmpty()) {
-                    skipChars.addAll(list)
+            if (checkVersion()) {
+                IOUtil.delAllFile(SDcardUtil.fileFolder!!.absolutePath)
+                val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
+                if (!TextUtils.isEmpty(adTexts)) {
+                    IOUtil.writeDiskText(
+                        SDcardUtil.fileFolder!!.absolutePath,
+                        AD_TEXTS,
+                        adTexts!!, false
+                    )
+                    val list = adTexts.split("#")
+                    if (!list.isNullOrEmpty()) {
+                        skipChars.addAll(list)
+                    }
                 }
+
+                val ids = ResHelp.getFileFromAssets(AD_IDS)
+                if (!TextUtils.isEmpty(ids)) {
+                    IOUtil.writeDiskText(
+                        SDcardUtil.fileFolder!!.absolutePath,
+                        AD_IDS,
+                        ids!!, false
+                    )
+                    val list = ids.split("#")
+                    if (!list.isNullOrEmpty()) {
+                        skipIds.addAll(list)
+                    }
+                }
+
+                val actBlackStr = ResHelp.getFileFromAssets(AD_ACT_WHITE)
+                if (!TextUtils.isEmpty(actBlackStr)) {
+                    IOUtil.writeDiskText(
+                        SDcardUtil.fileFolder!!.absolutePath,
+                        AD_ACT_WHITE,
+                        actBlackStr!!, false
+                    )
+                    val whiteList = actBlackStr.split("#")
+                    if (!whiteList.isNullOrEmpty()) {
+                        activityBlackList.addAll(whiteList)
+                    }
+                }
+
+                val pkgBlackSts = ResHelp.getFileFromAssets(PACKAGES)
+                if (!TextUtils.isEmpty(pkgBlackSts)) {
+                    IOUtil.writeDiskText(
+                        SDcardUtil.fileFolder!!.absolutePath,
+                        PACKAGES,
+                        pkgBlackSts!!, false
+                    )
+                    val pkgBlacks = pkgBlackSts.split("#")
+                    if (!pkgBlacks.isNullOrEmpty()) {
+                        pkgBlackList.addAll(pkgBlacks)
+                    }
+                }
+
+                val fileFromAssets = ResHelp.getFileFromAssets(VERSION_FILE)
+                IOUtil.writeDiskText(
+                    SDcardUtil.fileFolder!!.absolutePath,
+                    VERSION_FILE,
+                    fileFromAssets!!, false
+                )
+            } else {
+                loadFromSd()
             }
         }
-        ThreadPoolHelp.execute {
-            val ids = ResHelp.getFileFromAssets(AD_IDS)
-            if (!TextUtils.isEmpty(ids)) {
-                val list = ids!!.split("#")
-                if (!list.isNullOrEmpty()) {
-                    skipIds.addAll(list)
-                }
+    }
+
+    private fun loadFromSd() {
+        skipIds.clear()
+        skipChars.clear()
+        activityBlackList.clear()
+        pkgBlackList.clear()
+        val idsStr = IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, AD_IDS, false)
+        if (!TextUtils.isEmpty(idsStr)) {
+            val list = idsStr!!.split("#")
+            if (!list.isNullOrEmpty()) {
+                skipIds.addAll(list)
             }
         }
-        ThreadPoolHelp.execute {
-            val actWhiteList = ResHelp.getFileFromAssets(AD_ACT_WHITE)
-            actWhiteList?.run {
-                val whiteList = this.split("#")
-                if (!whiteList.isNullOrEmpty()) {
-                    activityBlackList.addAll(whiteList)
-                }
+        val adTexts = IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, AD_TEXTS, false)
+        if (!TextUtils.isEmpty(adTexts)) {
+            val list = adTexts!!.split("#")
+            if (!list.isNullOrEmpty()) {
+                skipChars.addAll(list)
             }
         }
-        ThreadPoolHelp.execute {
-            val gameSts = ResHelp.getFileFromAssets(GAMES)
-            gameSts?.run {
-                val games = this.split("#")
-                if (!games.isNullOrEmpty()) {
-                    gameList.addAll(games)
-                }
+        val actBlackStr =
+            IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, AD_ACT_WHITE, false)
+        if (!TextUtils.isEmpty(actBlackStr)) {
+            val whiteList = actBlackStr!!.split("#")
+            if (!whiteList.isNullOrEmpty()) {
+                activityBlackList.addAll(whiteList)
             }
         }
+        val pkgBlackSts = IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, PACKAGES, false)
+        if (!TextUtils.isEmpty(pkgBlackSts)) {
+            val pkgBlacks = pkgBlackSts!!.split("#")
+            if (!pkgBlacks.isNullOrEmpty()) {
+                pkgBlackList.addAll(pkgBlacks)
+            }
+        }
+    }
+
+    private fun checkVersion(): Boolean {
+        val diskVersionText =
+            IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, VERSION_FILE, true)
+        val assetsVersion = ResHelp.getFileFromAssets(VERSION_FILE)!!.toInt()
+        if (TextUtils.isEmpty(diskVersionText)) {
+            return true
+        } else {
+            try {
+                val toInt = diskVersionText!!.toInt()
+                if (abs(toInt - assetsVersion) != 0) {
+                    return true
+                }
+            } catch (e: NumberFormatException) {
+                return true
+            }
+        }
+        return false
     }
 
     override fun onDestroy() {
@@ -140,8 +228,8 @@ class CstService : Service(), IActivityInfoImpl {
         }
 
         mCurrentActivity ?: return
-        // 游戏界面不拦截
-        if (gameList.contains(event.packageName)) {
+        // 过滤应用不拦截
+        if (pkgBlackList.contains(event.packageName)) {
             return
         }
         // 黑名单的activity也不检测
@@ -294,6 +382,10 @@ class CstService : Service(), IActivityInfoImpl {
         fun switchInterceptAd(b: Boolean): Boolean {
             mIsInterceptAD = b
             return true
+        }
+
+        fun reloadFromSd() {
+            ThreadPoolHelp.execute { loadFromSd() }
         }
     }
 }

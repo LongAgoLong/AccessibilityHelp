@@ -77,6 +77,9 @@ class MainActivity : AppCompatActivity() {
             ServiceHelp.getInstance().unBindService()
             android.os.Process.killProcess(android.os.Process.myPid())
         }
+        mBinding.reloadBtn.setOnClickListener {
+            ServiceHelp.getInstance().reloadFromSd()
+        }
     }
 
     private fun checkOverlayPermission(): Boolean {

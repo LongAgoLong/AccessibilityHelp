@@ -114,4 +114,13 @@ class ServiceHelp {
             ToastUtil.show(text = "已关闭开屏广告拦截功能")
         }
     }
+
+    fun reloadFromSd() {
+        if (null == mBinder) {
+            LogUtil.e(TAG, "service not connect")
+            return
+        }
+        mBinder!!.reloadFromSd()
+        ToastUtil.show(text = "已为你重新加载拦截配置")
+    }
 }
