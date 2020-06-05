@@ -9,4 +9,6 @@ com.dangdang.buy2:id/adjump_layout#
 cn.damai:id/homepage_advert_pb#
 com.qiyi.video:id/unused_res_a#
 com.miui.systemAdSolution:id/view_skip#
-com.qiyi.video:id/btn_ads_img_pause_close
+com.qiyi.video:id/btn_ads_img_pause_close#
+com.others.export.bqg1:id/d6#
+com.android.browser:id/ad_feed_back

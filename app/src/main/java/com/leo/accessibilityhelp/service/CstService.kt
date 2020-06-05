@@ -73,108 +73,95 @@ class CstService : Service(), IActivityInfoImpl {
             if (checkVersion()) {
                 IOUtil.delAllFile(SDcardUtil.fileFolder!!.absolutePath)
                 val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
-                if (!TextUtils.isEmpty(adTexts)) {
+                adTexts?.let {
                     IOUtil.writeDiskText(
-                        SDcardUtil.fileFolder!!.absolutePath,
-                        AD_TEXTS,
-                        adTexts!!, false
+                        fileName = AD_TEXTS,
+                        content = it,
+                        base64Encode = false
                     )
-                    val list = adTexts.split("#")
-                    if (!list.isNullOrEmpty()) {
-                        skipChars.addAll(list)
-                    }
                 }
-
                 val ids = ResHelp.getFileFromAssets(AD_IDS)
-                if (!TextUtils.isEmpty(ids)) {
+                ids?.let {
                     IOUtil.writeDiskText(
-                        SDcardUtil.fileFolder!!.absolutePath,
-                        AD_IDS,
-                        ids!!, false
+                        fileName = AD_IDS,
+                        content = it,
+                        base64Encode = false
                     )
-                    val list = ids.split("#")
-                    if (!list.isNullOrEmpty()) {
-                        skipIds.addAll(list)
-                    }
                 }
 
                 val actBlackStr = ResHelp.getFileFromAssets(AD_ACT_WHITE)
-                if (!TextUtils.isEmpty(actBlackStr)) {
+                actBlackStr?.let {
                     IOUtil.writeDiskText(
-                        SDcardUtil.fileFolder!!.absolutePath,
-                        AD_ACT_WHITE,
-                        actBlackStr!!, false
+                        fileName = AD_ACT_WHITE,
+                        content = it,
+                        base64Encode = false
                     )
-                    val whiteList = actBlackStr.split("#")
-                    if (!whiteList.isNullOrEmpty()) {
-                        activityBlackList.addAll(whiteList)
-                    }
                 }
 
                 val pkgBlackSts = ResHelp.getFileFromAssets(PACKAGES)
-                if (!TextUtils.isEmpty(pkgBlackSts)) {
+                pkgBlackSts?.let {
                     IOUtil.writeDiskText(
-                        SDcardUtil.fileFolder!!.absolutePath,
-                        PACKAGES,
-                        pkgBlackSts!!, false
+                        fileName = PACKAGES,
+                        content = it,
+                        base64Encode = false
                     )
-                    val pkgBlacks = pkgBlackSts.split("#")
-                    if (!pkgBlacks.isNullOrEmpty()) {
-                        pkgBlackList.addAll(pkgBlacks)
-                    }
                 }
-
                 val fileFromAssets = ResHelp.getFileFromAssets(VERSION_FILE)
-                IOUtil.writeDiskText(
-                    SDcardUtil.fileFolder!!.absolutePath,
-                    VERSION_FILE,
-                    fileFromAssets!!, false
-                )
-            } else {
-                loadFromSd()
+                fileFromAssets?.let {
+                    IOUtil.writeDiskText(
+                        fileName = VERSION_FILE,
+                        content = it,
+                        base64Encode = false
+                    )
+                }
             }
+            loadFromSdcard()
         }
     }
 
-    private fun loadFromSd() {
-        skipIds.clear()
-        skipChars.clear()
-        activityBlackList.clear()
-        pkgBlackList.clear()
-        val idsStr = IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, AD_IDS, false)
-        if (!TextUtils.isEmpty(idsStr)) {
-            val list = idsStr!!.split("#")
-            if (!list.isNullOrEmpty()) {
-                skipIds.addAll(list)
+    private fun loadFromSdcard() {
+        try {
+            skipIds.clear()
+            skipChars.clear()
+            activityBlackList.clear()
+            pkgBlackList.clear()
+            val idsStr = IOUtil.getDiskText(fileName = AD_IDS)
+            if (!TextUtils.isEmpty(idsStr)) {
+                val list = idsStr!!.split("#")
+                if (!list.isNullOrEmpty()) {
+                    skipIds.addAll(list)
+                }
             }
-        }
-        val adTexts = IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, AD_TEXTS, false)
-        if (!TextUtils.isEmpty(adTexts)) {
-            val list = adTexts!!.split("#")
-            if (!list.isNullOrEmpty()) {
-                skipChars.addAll(list)
+            val adTexts = IOUtil.getDiskText(fileName = AD_TEXTS)
+            if (!TextUtils.isEmpty(adTexts)) {
+                val list = adTexts!!.split("#")
+                if (!list.isNullOrEmpty()) {
+                    skipChars.addAll(list)
+                }
             }
-        }
-        val actBlackStr =
-            IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, AD_ACT_WHITE, false)
-        if (!TextUtils.isEmpty(actBlackStr)) {
-            val whiteList = actBlackStr!!.split("#")
-            if (!whiteList.isNullOrEmpty()) {
-                activityBlackList.addAll(whiteList)
+            val actBlackStr =
+                IOUtil.getDiskText(fileName = AD_ACT_WHITE)
+            if (!TextUtils.isEmpty(actBlackStr)) {
+                val whiteList = actBlackStr!!.split("#")
+                if (!whiteList.isNullOrEmpty()) {
+                    activityBlackList.addAll(whiteList)
+                }
             }
-        }
-        val pkgBlackSts = IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, PACKAGES, false)
-        if (!TextUtils.isEmpty(pkgBlackSts)) {
-            val pkgBlacks = pkgBlackSts!!.split("#")
-            if (!pkgBlacks.isNullOrEmpty()) {
-                pkgBlackList.addAll(pkgBlacks)
+            val pkgBlackSts = IOUtil.getDiskText(fileName = PACKAGES)
+            if (!TextUtils.isEmpty(pkgBlackSts)) {
+                val pkgBlacks = pkgBlackSts!!.split("#")
+                if (!pkgBlacks.isNullOrEmpty()) {
+                    pkgBlackList.addAll(pkgBlacks)
+                }
             }
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
     private fun checkVersion(): Boolean {
         val diskVersionText =
-            IOUtil.getDiskText(SDcardUtil.fileFolder!!.absolutePath, VERSION_FILE, true)
+            IOUtil.getDiskText(fileName = VERSION_FILE)
         val assetsVersion = ResHelp.getFileFromAssets(VERSION_FILE)!!.toInt()
         if (TextUtils.isEmpty(diskVersionText)) {
             return true
@@ -385,7 +372,7 @@ class CstService : Service(), IActivityInfoImpl {
         }
 
         fun reloadFromSd() {
-            ThreadPoolHelp.execute { loadFromSd() }
+            ThreadPoolHelp.execute { loadFromSdcard() }
         }
     }
 }
