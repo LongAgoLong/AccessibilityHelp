@@ -4,16 +4,16 @@ apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
 
 android {
-    compileSdkVersion 28
+    compileSdkVersion 29
     dataBinding {
         enabled = true
     }
     defaultConfig {
         applicationId "com.leo.accessibilityhelp"
         minSdkVersion 18
-        targetSdkVersion 28
-        versionCode 5
-        versionName "1.4"
+        targetSdkVersion 29
+        versionCode 7
+        versionName "1.7"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
     compileOptions {
