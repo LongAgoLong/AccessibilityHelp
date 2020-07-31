@@ -11,4 +11,8 @@ com.qiyi.video:id/unused_res_a#
 com.miui.systemAdSolution:id/view_skip#
 com.qiyi.video:id/btn_ads_img_pause_close#
 com.others.export.bqg1:id/d6#
-com.android.browser:id/ad_feed_back
+com.android.browser:id/ad_feed_back#
+com.others.export.bqg1:id/a4_#
+com.others.export.bqg1:id/z8#
+com.others.export.bqg1:id/a4j#
+com.others.export.bqg1:id/lt

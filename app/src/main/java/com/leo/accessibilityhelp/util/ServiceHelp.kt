@@ -1,5 +1,6 @@
 package com.leo.accessibilityhelp.util
 
+import android.annotation.SuppressLint
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -7,23 +8,21 @@ import android.content.ServiceConnection
 import android.os.Handler
 import android.os.IBinder
 import android.os.Looper
-import android.view.accessibility.AccessibilityEvent
+import android.os.Message
 import com.leo.accessibilityhelp.service.CstService
 import com.leo.commonutil.notify.ToastUtil
 import com.leo.system.ContextHelp
 import com.leo.system.LogUtil
+import java.lang.ref.WeakReference
 
-class ServiceHelp {
+class ServiceHelp private constructor() {
     private var mBinder: CstService.LocalBinder? = null
     val deathProxy = DeathProxy()
-    private val mHandler: Handler = Handler(Looper.getMainLooper(), Handler.Callback { msg ->
-        when (msg.what) {
-            RECONNECT_ID -> {
-                retryConnect()
-            }
-        }
-        return@Callback true
-    })
+    var mHandler: ServiceHandler
+
+    init {
+        mHandler = ServiceHandler(WeakReference(this@ServiceHelp))
+    }
 
     companion object {
         private const val TAG = "ServiceHelp"
@@ -80,10 +79,12 @@ class ServiceHelp {
                 if (null == mBinder) {
                     return@synchronized
                 }
-                mBinder!!.switchFloatingViewState(false)
-                mBinder!!.switchInterceptAd(false)
-                mBinder!!.unlinkToDeath(deathProxy, 0)
-                ContextHelp.context.unbindService(mConnection)
+                mBinder?.run {
+                    getService().removeInfoView()
+                    getService().toggleInterceptAd(false)
+                    unlinkToDeath(deathProxy, 0)
+                    ContextHelp.context.unbindService(mConnection)
+                }
                 mBinder = null
             }
         }
@@ -96,32 +97,39 @@ class ServiceHelp {
     }
 
     fun switchFloatingViewState(b: Boolean) {
-        if (null == mBinder) {
-            LogUtil.e(TAG, "service not connect")
-            return
-        }
-        mBinder!!.switchFloatingViewState(b)
+        mBinder ?: LogUtil.e(TAG, "service not connect")
+        if (b) mBinder?.getService()?.addInfoView() else mBinder?.getService()?.removeInfoView()
     }
 
     fun switchInterceptAd(b: Boolean) {
-        if (null == mBinder) {
-            LogUtil.e(TAG, "service not connect")
-            return
-        }
-        mBinder!!.switchInterceptAd(b)
-        if (b) {
-            ToastUtil.show(text = "已开启开屏广告拦截功能")
-        } else {
-            ToastUtil.show(text = "已关闭开屏广告拦截功能")
+        mBinder?.run {
+            getService().toggleInterceptAd(b)
+            ToastUtil.show(text = (if (b) "已开启开屏广告拦截功能" else "已关闭开屏广告拦截功能"))
         }
     }
 
     fun reloadFromSd() {
-        if (null == mBinder) {
-            LogUtil.e(TAG, "service not connect")
-            return
+        mBinder?.run {
+            getService().loadConfigFromSdcard()
+            ToastUtil.show(text = "已为你重新加载拦截配置")
         }
-        mBinder!!.reloadFromSd()
-        ToastUtil.show(text = "已为你重新加载拦截配置")
+    }
+
+    @SuppressLint("HandlerLeak")
+    inner class ServiceHandler private constructor() : Handler(Looper.getMainLooper()) {
+        lateinit var weakReference: WeakReference<ServiceHelp>
+
+        constructor(weakReference: WeakReference<ServiceHelp>) : this() {
+            this.weakReference = weakReference
+        }
+
+        override fun handleMessage(msg: Message) {
+            weakReference ?: return
+            val help = weakReference.get()
+            help ?: return
+            if (msg.what == RECONNECT_ID) {
+                help.retryConnect()
+            }
+        }
     }
 }

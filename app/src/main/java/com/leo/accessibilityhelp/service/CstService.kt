@@ -1,11 +1,9 @@
 package com.leo.accessibilityhelp.service
 
-import android.app.Service
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.pm.ActivityInfo
-import android.content.pm.PackageManager
 import android.graphics.PixelFormat
 import android.os.Binder
 import android.os.Build
@@ -16,7 +14,13 @@ import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
+import androidx.lifecycle.LifecycleService
 import com.leo.accessibilityhelp.R
+import com.leo.accessibilityhelp.lifecyle.CstServiceObserver
+import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.AD_ACT_WHITE
+import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.AD_IDS
+import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.AD_TEXTS
+import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.PACKAGES
 import com.leo.accessibilityhelp.ui.view.FloatingView
 import com.leo.accessibilityhelp.ui.view.FloatingView.OnCloseCallback
 import com.leo.accessibilityhelplib.AccessibilityHelp
@@ -25,26 +29,25 @@ import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.asyn.threadPool.ThreadPoolHelp
 import com.leo.commonutil.notify.NotificationHelp
 import com.leo.commonutil.storage.IOUtil
-import com.leo.commonutil.storage.SDcardUtil
 import com.leo.system.LogUtil
-import com.leo.system.ResHelp
 import java.util.*
-import kotlin.math.abs
+import java.util.concurrent.CopyOnWriteArraySet
 
 
-class CstService : Service(), IActivityInfoImpl {
+class CstService : LifecycleService(), IActivityInfoImpl {
+    private val binder: LocalBinder = LocalBinder()
+
     private var mCurrentActivity: ActivityInfo? = null
-    private val skipChars = mutableSetOf<String>()
-    private val skipIds = mutableSetOf<String>()
-    private val activityBlackList = mutableSetOf<String>()
-    private val pkgBlackList = mutableSetOf<String>()
+    private val skipChars = CopyOnWriteArraySet<String>()
+    private val skipIds = CopyOnWriteArraySet<String>()
+    private val activityBlackList = CopyOnWriteArraySet<String>()
+    private val pkgBlackList = CopyOnWriteArraySet<String>()
     private var mCheckCount = 0
 
     private var mParams: WindowManager.LayoutParams? = null
     private var mWindowManager: WindowManager? = null
-    var mFloatingView: FloatingView? = null
-    var mIsInterceptAD: Boolean = false
-    private val binder: LocalBinder = LocalBinder()
+    private var mFloatingView: FloatingView? = null
+    private var mIsInterceptAD: Boolean = false
 
     companion object {
         const val NOTIFY_ID = 10086
@@ -52,13 +55,17 @@ class CstService : Service(), IActivityInfoImpl {
         const val NOTIFY_CHANNEL_NAME = "前台服务"
 
         const val TAG = "CstService"
-        private const val AD_IDS = "skipIds.txt"
-        private const val AD_TEXTS = "skipTexts.txt"
-        private const val AD_ACT_WHITE = "activityBlackList.txt"
-        private const val PACKAGES = "pkgBlackList.txt"
-        private const val VERSION_FILE = "version.txt"
 
         private const val MAX_CHECK_COUNT = 3
+    }
+
+    init {
+        val observer = CstServiceObserver(object : CstServiceObserver.OnObserverCallback {
+            override fun onInitSuccess() {
+                loadConfigFromSdcard()
+            }
+        })
+        lifecycle.addObserver(observer)
     }
 
     override fun onCreate() {
@@ -66,126 +73,58 @@ class CstService : Service(), IActivityInfoImpl {
         foreground()
         initTrackerWindowManager()
         AccessibilityHelp.getInstance().mIActivityInfoImpl = this@CstService
-        /**
-         * 初始化
-         */
+    }
+
+    fun loadConfigFromSdcard() {
         ThreadPoolHelp.execute {
-            if (checkVersion()) {
-                IOUtil.delAllFile(SDcardUtil.fileFolder!!.absolutePath)
-                val adTexts = ResHelp.getFileFromAssets(AD_TEXTS)
-                adTexts?.let {
-                    IOUtil.writeDiskText(
-                        fileName = AD_TEXTS,
-                        content = it,
-                        base64Encode = false
-                    )
-                }
-                val ids = ResHelp.getFileFromAssets(AD_IDS)
-                ids?.let {
-                    IOUtil.writeDiskText(
-                        fileName = AD_IDS,
-                        content = it,
-                        base64Encode = false
-                    )
-                }
-
-                val actBlackStr = ResHelp.getFileFromAssets(AD_ACT_WHITE)
-                actBlackStr?.let {
-                    IOUtil.writeDiskText(
-                        fileName = AD_ACT_WHITE,
-                        content = it,
-                        base64Encode = false
-                    )
-                }
-
-                val pkgBlackSts = ResHelp.getFileFromAssets(PACKAGES)
-                pkgBlackSts?.let {
-                    IOUtil.writeDiskText(
-                        fileName = PACKAGES,
-                        content = it,
-                        base64Encode = false
-                    )
-                }
-                val fileFromAssets = ResHelp.getFileFromAssets(VERSION_FILE)
-                fileFromAssets?.let {
-                    IOUtil.writeDiskText(
-                        fileName = VERSION_FILE,
-                        content = it,
-                        base64Encode = false
-                    )
-                }
-            }
-            loadFromSdcard()
-        }
-    }
-
-    private fun loadFromSdcard() {
-        try {
-            skipIds.clear()
-            skipChars.clear()
-            activityBlackList.clear()
-            pkgBlackList.clear()
-            val idsStr = IOUtil.getDiskText(fileName = AD_IDS)
-            if (!TextUtils.isEmpty(idsStr)) {
-                val list = idsStr!!.split("#")
-                if (!list.isNullOrEmpty()) {
-                    skipIds.addAll(list)
-                }
-            }
-            val adTexts = IOUtil.getDiskText(fileName = AD_TEXTS)
-            if (!TextUtils.isEmpty(adTexts)) {
-                val list = adTexts!!.split("#")
-                if (!list.isNullOrEmpty()) {
-                    skipChars.addAll(list)
-                }
-            }
-            val actBlackStr =
-                IOUtil.getDiskText(fileName = AD_ACT_WHITE)
-            if (!TextUtils.isEmpty(actBlackStr)) {
-                val whiteList = actBlackStr!!.split("#")
-                if (!whiteList.isNullOrEmpty()) {
-                    activityBlackList.addAll(whiteList)
-                }
-            }
-            val pkgBlackSts = IOUtil.getDiskText(fileName = PACKAGES)
-            if (!TextUtils.isEmpty(pkgBlackSts)) {
-                val pkgBlacks = pkgBlackSts!!.split("#")
-                if (!pkgBlacks.isNullOrEmpty()) {
-                    pkgBlackList.addAll(pkgBlacks)
-                }
-            }
-        } catch (e: Exception) {
-            e.printStackTrace()
-        }
-    }
-
-    private fun checkVersion(): Boolean {
-        val diskVersionText =
-            IOUtil.getDiskText(fileName = VERSION_FILE)
-        val assetsVersion = ResHelp.getFileFromAssets(VERSION_FILE)!!.toInt()
-        if (TextUtils.isEmpty(diskVersionText)) {
-            return true
-        } else {
             try {
-                val toInt = diskVersionText!!.toInt()
-                if (abs(toInt - assetsVersion) != 0) {
-                    return true
+                skipIds.clear()
+                skipChars.clear()
+                activityBlackList.clear()
+                pkgBlackList.clear()
+                val idsStr = IOUtil.getDiskText(fileName = AD_IDS)
+                if (!TextUtils.isEmpty(idsStr)) {
+                    val list = idsStr!!.split("#")
+                    if (!list.isNullOrEmpty()) {
+                        skipIds.addAll(list)
+                    }
                 }
-            } catch (e: NumberFormatException) {
-                return true
+                val adTexts = IOUtil.getDiskText(fileName = AD_TEXTS)
+                if (!TextUtils.isEmpty(adTexts)) {
+                    val list = adTexts!!.split("#")
+                    if (!list.isNullOrEmpty()) {
+                        skipChars.addAll(list)
+                    }
+                }
+                val actBlackStr =
+                    IOUtil.getDiskText(fileName = AD_ACT_WHITE)
+                if (!TextUtils.isEmpty(actBlackStr)) {
+                    val whiteList = actBlackStr!!.split("#")
+                    if (!whiteList.isNullOrEmpty()) {
+                        activityBlackList.addAll(whiteList)
+                    }
+                }
+                val pkgBlackSts = IOUtil.getDiskText(fileName = PACKAGES)
+                if (!TextUtils.isEmpty(pkgBlackSts)) {
+                    val pkgBlacks = pkgBlackSts!!.split("#")
+                    if (!pkgBlacks.isNullOrEmpty()) {
+                        pkgBlackList.addAll(pkgBlacks)
+                    }
+                }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
-        return false
     }
 
     override fun onDestroy() {
-        removeView()
-        AccessibilityHelp.getInstance().mIActivityInfoImpl = null
+        removeInfoView()
         stopForeground(true)
         super.onDestroy()
     }
 
-    override fun onBind(intent: Intent?): IBinder? {
+    override fun onBind(intent: Intent): IBinder? {
+        super.onBind(intent)
         return binder
     }
 
@@ -266,14 +205,17 @@ class CstService : Service(), IActivityInfoImpl {
         mParams = params
     }
 
-    private fun addView() {
+    /**
+     * 显示信息悬浮窗
+     */
+    fun addInfoView() {
         if (null == mFloatingView) {
             synchronized(lock = CstService::class, block = {
                 if (null == mFloatingView) {
                     mFloatingView = FloatingView(this@CstService)
                     mFloatingView!!.setOnCloseCallback(callback = object : OnCloseCallback {
                         override fun onClose() {
-                            removeView()
+                            removeInfoView()
                         }
                     })
                     mFloatingView!!.layoutParams = mParams
@@ -283,11 +225,22 @@ class CstService : Service(), IActivityInfoImpl {
         }
     }
 
-    private fun removeView() {
+    /**
+     * 关闭信息悬浮窗
+     */
+    fun removeInfoView() {
         mFloatingView?.let {
             mWindowManager?.removeView(it)
         }
         mFloatingView = null
+    }
+
+    /**
+     * 切换广告跳过开关
+     */
+    fun toggleInterceptAd(b: Boolean): Boolean {
+        mIsInterceptAD = b
+        return true
     }
 
     /**
@@ -330,7 +283,7 @@ class CstService : Service(), IActivityInfoImpl {
         try {
             mCurrentActivity = packageManager.getActivityInfo(componentName, 0)
             LogUtil.e(TAG, "mCurrentActivity name is ${mCurrentActivity?.name ?: "null"}")
-        } catch (e: PackageManager.NameNotFoundException) {
+        } catch (e: Exception) {
         }
         return mCurrentActivity
     }
@@ -357,22 +310,8 @@ class CstService : Service(), IActivityInfoImpl {
     }
 
     inner class LocalBinder : Binder() {
-        fun switchFloatingViewState(b: Boolean): Boolean {
-            if (b && mFloatingView == null) {
-                addView()
-            } else if (!b && mFloatingView != null) {
-                removeView()
-            }
-            return true
-        }
-
-        fun switchInterceptAd(b: Boolean): Boolean {
-            mIsInterceptAD = b
-            return true
-        }
-
-        fun reloadFromSd() {
-            ThreadPoolHelp.execute { loadFromSdcard() }
+        fun getService(): CstService {
+            return this@CstService
         }
     }
 }
