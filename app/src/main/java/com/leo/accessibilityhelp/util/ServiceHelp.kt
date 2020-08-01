@@ -17,8 +17,8 @@ import java.lang.ref.WeakReference
 
 class ServiceHelp private constructor() {
     private var mBinder: CstService.LocalBinder? = null
-    val deathProxy = DeathProxy()
-    var mHandler: ServiceHandler
+    private val deathProxy = DeathProxy()
+    private var mHandler: ServiceHandler
 
     init {
         mHandler = ServiceHandler(WeakReference(this@ServiceHelp))
@@ -116,10 +116,10 @@ class ServiceHelp private constructor() {
     }
 
     @SuppressLint("HandlerLeak")
-    inner class ServiceHandler private constructor() : Handler(Looper.getMainLooper()) {
-        lateinit var weakReference: WeakReference<ServiceHelp>
+    inner class ServiceHandler : Handler{
+        private var weakReference: WeakReference<ServiceHelp>
 
-        constructor(weakReference: WeakReference<ServiceHelp>) : this() {
+        constructor(weakReference: WeakReference<ServiceHelp>) : super(Looper.getMainLooper()) {
             this.weakReference = weakReference
         }
 

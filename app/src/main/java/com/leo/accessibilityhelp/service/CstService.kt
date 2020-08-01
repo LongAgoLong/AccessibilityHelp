@@ -16,11 +16,11 @@ import android.view.accessibility.AccessibilityNodeInfo
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.LifecycleService
 import com.leo.accessibilityhelp.R
-import com.leo.accessibilityhelp.lifecyle.CstServiceObserver
-import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.AD_ACT_WHITE
-import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.AD_IDS
-import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.AD_TEXTS
-import com.leo.accessibilityhelp.lifecyle.CstServiceObserver.Companion.PACKAGES
+import com.leo.accessibilityhelp.lifecyle.ServiceObserver
+import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_ACT_WHITE
+import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_IDS
+import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_TEXTS
+import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.PACKAGES
 import com.leo.accessibilityhelp.ui.view.FloatingView
 import com.leo.accessibilityhelp.ui.view.FloatingView.OnCloseCallback
 import com.leo.accessibilityhelplib.AccessibilityHelp
@@ -60,7 +60,7 @@ class CstService : LifecycleService(), IActivityInfoImpl {
     }
 
     init {
-        val observer = CstServiceObserver(object : CstServiceObserver.OnObserverCallback {
+        val observer = ServiceObserver(object : ServiceObserver.OnObserverCallback {
             override fun onInitSuccess() {
                 loadConfigFromSdcard()
             }

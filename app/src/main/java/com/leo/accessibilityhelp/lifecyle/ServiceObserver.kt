@@ -11,7 +11,7 @@ import com.leo.commonutil.storage.SDcardUtil
 import com.leo.system.ResHelp
 import kotlin.math.abs
 
-class CstServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : LifecycleObserver {
+class ServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : LifecycleObserver {
     private val mOnInitCallback = onObserverCallback
 
     companion object {
