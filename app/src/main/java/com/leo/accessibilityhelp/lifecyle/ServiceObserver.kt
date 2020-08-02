@@ -30,16 +30,14 @@ class ServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : Lifecyc
             adTexts?.let {
                 IOUtil.writeDiskText(
                     fileName = AD_TEXTS,
-                    content = it,
-                    base64Encode = false
+                    content = it
                 )
             }
             val ids = ResHelp.getFileFromAssets(AD_IDS)
             ids?.let {
                 IOUtil.writeDiskText(
                     fileName = AD_IDS,
-                    content = it,
-                    base64Encode = false
+                    content = it
                 )
             }
 
@@ -47,8 +45,7 @@ class ServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : Lifecyc
             actBlackStr?.let {
                 IOUtil.writeDiskText(
                     fileName = AD_ACT_WHITE,
-                    content = it,
-                    base64Encode = false
+                    content = it
                 )
             }
 
@@ -56,16 +53,14 @@ class ServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : Lifecyc
             pkgBlackSts?.let {
                 IOUtil.writeDiskText(
                     fileName = PACKAGES,
-                    content = it,
-                    base64Encode = false
+                    content = it
                 )
             }
             val fileFromAssets = ResHelp.getFileFromAssets(VERSION_FILE)
             fileFromAssets?.let {
                 IOUtil.writeDiskText(
                     fileName = VERSION_FILE,
-                    content = it,
-                    base64Encode = false
+                    content = it
                 )
             }
             mOnInitCallback.onInitSuccess()

@@ -2,11 +2,14 @@ apply plugin: 'com.android.application'
 apply plugin: 'kotlin-android'
 apply plugin: 'kotlin-android-extensions'
 apply plugin: 'kotlin-kapt'
+apply plugin: 'androidx.navigation.safeargs'
 
 android {
     compileSdkVersion 30
-    dataBinding {
-        enabled = true
+    buildFeatures {
+        dataBinding = true
+// for view binding :
+// viewBinding = true
     }
     defaultConfig {
         applicationId "com.leo.accessibilityhelp"
@@ -43,11 +46,20 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$KotlinVersion"
     implementation 'androidx.appcompat:appcompat:1.1.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
+
+    def nav = "2.3.0"
+    implementation "androidx.navigation:navigation-fragment-ktx:$nav"
+    implementation "androidx.navigation:navigation-ui-ktx:$nav"
+
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.12'
     androidTestImplementation 'androidx.test.ext:junit:1.1.1'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.2.0'
+
     implementation "com.github.LongAgoLong.AndroidUtil:system:$AndroidUtilVersion"
     implementation "com.github.LongAgoLong.AndroidUtil:common:$AndroidUtilVersion"
+    implementation "com.github.LongAgoLong.AndroidUtil:recyclerview-help:$AndroidUtilVersion"
+
     implementation project(path: ':accessibilityhelplib')
     implementation "androidx.lifecycle:lifecycle-extensions:2.2.0"
 }

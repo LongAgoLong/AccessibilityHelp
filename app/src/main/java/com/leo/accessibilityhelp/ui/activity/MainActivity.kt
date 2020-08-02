@@ -14,9 +14,10 @@ import com.leo.accessibilityhelp.util.ServiceHelp
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.ToastUtil
+import com.leo.system.IntentUtil
 
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : BaseActivity() {
     private lateinit var mBinding: ActivityMainBinding
 
     companion object {
@@ -25,7 +26,8 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        mBinding = DataBindingUtil.setContentView(this,
+        mBinding = DataBindingUtil.setContentView(
+            this,
             R.layout.activity_main
         )
         initView()
@@ -80,6 +82,9 @@ class MainActivity : AppCompatActivity() {
         mBinding.reloadBtn.setOnClickListener {
             ServiceHelp.getInstance().reloadFromSd()
         }
+        mBinding.toEditFileBtn.setOnClickListener {
+            IntentUtil.startActivity(this@MainActivity, EditConfigActivity::class.java)
+        }
     }
 
     private fun checkOverlayPermission(): Boolean {
@@ -88,7 +93,8 @@ class MainActivity : AppCompatActivity() {
                 ToastUtil.show(text = "请授予${AppInfoUtil.appName}悬浮窗权限")
                 val uri = Uri.parse("package:$packageName")
                 val intent = Intent(Settings.ACTION_MANAGE_OVERLAY_PERMISSION, uri)
-                startActivityForResult(intent,
+                startActivityForResult(
+                    intent,
                     REQUEST_CODE
                 )
                 return false

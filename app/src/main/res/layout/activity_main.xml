@@ -112,13 +112,27 @@
                     android:layout_width="0dp"
                     android:layout_height="100dp"
                     android:layout_marginTop="12dp"
+                    android:layout_marginEnd="6dp"
                     android:background="@drawable/bg_btn"
                     android:text="@string/text_reload"
                     android:textColor="@android:color/white"
                     android:textSize="16sp"
                     app:layout_constraintLeft_toLeftOf="@+id/openInterceptAdBtn"
-                    app:layout_constraintRight_toRightOf="@+id/openInterceptAdBtn"
+                    app:layout_constraintRight_toLeftOf="@+id/toEditFileBtn"
                     app:layout_constraintTop_toBottomOf="@+id/openInterceptAdBtn" />
+
+                <Button
+                    android:id="@+id/toEditFileBtn"
+                    android:layout_width="0dp"
+                    android:layout_height="100dp"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_btn"
+                    android:text="@string/text_filter_rule"
+                    android:textColor="@android:color/white"
+                    android:textSize="16sp"
+                    app:layout_constraintLeft_toRightOf="@+id/reloadBtn"
+                    app:layout_constraintRight_toRightOf="parent"
+                    app:layout_constraintTop_toTopOf="@+id/reloadBtn" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </androidx.core.widget.NestedScrollView>
