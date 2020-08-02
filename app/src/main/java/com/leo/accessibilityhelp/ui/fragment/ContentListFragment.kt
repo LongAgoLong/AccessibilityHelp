@@ -1,12 +1,11 @@
 package com.leo.accessibilityhelp.ui.fragment
 
 import android.os.Bundle
-import android.text.TextUtils
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.databinding.FragmentContentListBinding
 import com.leo.accessibilityhelp.lifecyle.ServiceObserver

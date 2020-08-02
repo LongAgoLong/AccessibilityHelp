@@ -1,23 +1,20 @@
 package com.leo.accessibilityhelp.ui.fragment
 
-import android.graphics.Color
 import android.os.Bundle
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
+import androidx.fragment.app.Fragment
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.OrientationHelper
 import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.adapter.FileListAdapter
 import com.leo.accessibilityhelp.databinding.FragmentChooseFileBinding
 import com.leo.accessibilityhelp.lifecyle.ServiceObserver
-import com.leo.commonutil.storage.SDcardUtil
 import com.leo.recyclerview_help.decoration.LineItemDecoration
 import com.leo.system.ResHelp
 import com.leo.system.WindowUtils
-import java.io.File
 
 class ChooseFileFragment : Fragment() {
     private lateinit var mBinding: FragmentChooseFileBinding

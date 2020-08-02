@@ -10,6 +10,7 @@ import android.provider.Settings.SettingNotFoundException
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
+import java.util.*
 
 
 class AccessibilityHelp {
@@ -64,7 +65,10 @@ class AccessibilityHelp {
                 ENABLED_ACCESSIBILITY_SERVICES
             )
             services?.run {
-                return toLowerCase().contains(context.packageName.toLowerCase())
+                return toLowerCase(Locale.getDefault())
+                    .contains(
+                        context.packageName.toLowerCase(Locale.getDefault())
+                    )
             }
         }
         return false
