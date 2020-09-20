@@ -145,23 +145,24 @@ class CstService : LifecycleService(), IActivityInfoImpl {
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        tryGetActivity(event)
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            mFloatingView?.updateInfo(
-                event.packageName.toString(),
-                mCurrentActivity?.name ?: event.className.toString()
-            )
-        }
+        tryParseActivity(event)
+        val pkgName = event.packageName.toString()
+        val activityName =
+            if (null != mCurrentActivity && !TextUtils.isEmpty(mCurrentActivity!!.name)) {
+                mCurrentActivity!!.name.toString()
+            } else {
+                event.className.toString()
+            }
 
-        mCurrentActivity ?: return
+        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+            mFloatingView?.updateInfo(pkgName, activityName)
+        }
         // 过滤应用不拦截
-        if (pkgBlackList.contains(event.packageName)) {
+        if (pkgBlackList.contains(pkgName)) {
             return
         }
         // 黑名单的activity也不检测
-        if (!TextUtils.isEmpty(mCurrentActivity!!.name)
-            && activityBlackList.contains(mCurrentActivity!!.name)
-        ) {
+        if (activityBlackList.contains(activityName)) {
             return
         }
         val nodeList = findNodeList(event)
@@ -259,8 +260,10 @@ class CstService : LifecycleService(), IActivityInfoImpl {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.JELLY_BEAN_MR2) {
                 LogUtil.d(
                     TAG,
-                    "performClick() currentActivity is ${mCurrentActivity?.name
-                        ?: "null"} nodeInfo text is ${nodeInfo.text} ; id is ${nodeInfo.viewIdResourceName}"
+                    "performClick() currentActivity is ${
+                        mCurrentActivity?.name
+                            ?: "null"
+                    } nodeInfo text is ${nodeInfo.text} ; id is ${nodeInfo.viewIdResourceName}"
                 )
             } else {
                 LogUtil.d(
@@ -278,14 +281,16 @@ class CstService : LifecycleService(), IActivityInfoImpl {
         return false
     }
 
-    private fun tryGetActivity(event: AccessibilityEvent): ActivityInfo? {
-        val componentName = ComponentName(event.packageName.toString(), event.className.toString())
+    private fun tryParseActivity(event: AccessibilityEvent) {
+        var activityInfo: ActivityInfo? = null
         try {
-            mCurrentActivity = packageManager.getActivityInfo(componentName, 0)
+            val componentName =
+                ComponentName(event.packageName.toString(), event.className.toString())
+            activityInfo = packageManager.getActivityInfo(componentName, 0)
             LogUtil.e(TAG, "mCurrentActivity name is ${mCurrentActivity?.name ?: "null"}")
         } catch (e: Exception) {
         }
-        return mCurrentActivity
+        mCurrentActivity = activityInfo
     }
 
     private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {

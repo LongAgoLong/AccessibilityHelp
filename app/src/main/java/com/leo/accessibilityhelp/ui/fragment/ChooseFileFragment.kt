@@ -51,9 +51,7 @@ class ChooseFileFragment : Fragment() {
                 object : FileListAdapter.OnItemClickCallback {
                     override fun onItemClick(position: Int, view: View) {
                         val builder = ChooseFileFragmentArgs.Builder()
-                        builder.run {
-                            filePath = list[position]
-                        }
+                        builder.filePath = list[position]
                         val bundle = builder.build().toBundle()
                         Navigation.findNavController(view)
                             .navigate(
@@ -67,9 +65,9 @@ class ChooseFileFragment : Fragment() {
                 LineItemDecoration(
                     requireActivity(),
                     OrientationHelper.VERTICAL,
-                    WindowUtils.dp2px(dpValue = 0.7f),
+                    WindowUtils.dp2px(dpValue = 0.5f),
                     false, false,
-                    ResHelp.getColor(R.color.c13b5b1)
+                    ResHelp.getColor(R.color.colorAccent)
                 )
             )
         }

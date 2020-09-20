@@ -91,6 +91,11 @@ class ServiceHelp private constructor() {
         ToastUtil.show(text = "服务连接已断开")
     }
 
+    fun stopService() {
+        val intent = Intent(ContextHelp.context, CstService::class.java)
+        ContextHelp.context.stopService(intent)
+    }
+
     private fun bind() {
         val intent = Intent(ContextHelp.context, CstService::class.java)
         ContextHelp.context.bindService(intent, mConnection, Context.BIND_AUTO_CREATE)
@@ -104,7 +109,7 @@ class ServiceHelp private constructor() {
     fun switchInterceptAd(b: Boolean) {
         mBinder?.run {
             getService().toggleInterceptAd(b)
-            ToastUtil.show(text = (if (b) "已开启开屏广告拦截功能" else "已关闭开屏广告拦截功能"))
+            ToastUtil.show(text = "${if (b) "已开启" else "已关闭"}开屏广告拦截功能")
         }
     }
 
@@ -116,7 +121,7 @@ class ServiceHelp private constructor() {
     }
 
     @SuppressLint("HandlerLeak")
-    inner class ServiceHandler : Handler{
+    inner class ServiceHandler : Handler {
         private var weakReference: WeakReference<ServiceHelp>
 
         constructor(weakReference: WeakReference<ServiceHelp>) : super(Looper.getMainLooper()) {

@@ -77,6 +77,7 @@ class MainActivity : BaseActivity() {
         }
         mBinding.closeServiceBtn.setOnClickListener {
             ServiceHelp.getInstance().unBindService()
+            ServiceHelp.getInstance().stopService()
             android.os.Process.killProcess(android.os.Process.myPid())
         }
         mBinding.reloadBtn.setOnClickListener {
