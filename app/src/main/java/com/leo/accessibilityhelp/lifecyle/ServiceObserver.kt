@@ -17,7 +17,7 @@ class ServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : Lifecyc
     companion object {
         const val AD_IDS = "skipIds.txt"
         const val AD_TEXTS = "skipTexts.txt"
-        const val AD_ACT_WHITE = "activityBlackList.txt"
+        const val AD_ACT_BLACK = "activityBlackList.txt"
         const val PACKAGES = "pkgBlackList.txt"
         const val VERSION_FILE = "version.txt"
     }
@@ -41,10 +41,10 @@ class ServiceObserver(@NonNull onObserverCallback: OnObserverCallback) : Lifecyc
                 )
             }
 
-            val actBlackStr = ResHelp.getFileFromAssets(AD_ACT_WHITE)
+            val actBlackStr = ResHelp.getFileFromAssets(AD_ACT_BLACK)
             actBlackStr?.let {
                 IOUtil.writeDiskText(
-                    fileName = AD_ACT_WHITE,
+                    fileName = AD_ACT_BLACK,
                     content = it
                 )
             }

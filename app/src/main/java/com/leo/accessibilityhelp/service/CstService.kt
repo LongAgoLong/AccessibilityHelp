@@ -1,9 +1,7 @@
 package com.leo.accessibilityhelp.service
 
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.content.pm.ActivityInfo
 import android.graphics.PixelFormat
 import android.os.Binder
 import android.os.Build
@@ -17,7 +15,7 @@ import androidx.annotation.RequiresApi
 import androidx.lifecycle.LifecycleService
 import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.lifecyle.ServiceObserver
-import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_ACT_WHITE
+import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_ACT_BLACK
 import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_IDS
 import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.AD_TEXTS
 import com.leo.accessibilityhelp.lifecyle.ServiceObserver.Companion.PACKAGES
@@ -37,7 +35,6 @@ import java.util.concurrent.CopyOnWriteArraySet
 class CstService : LifecycleService(), IActivityInfoImpl {
     private val binder: LocalBinder = LocalBinder()
 
-    private var mCurrentActivity: ActivityInfo? = null
     private val skipChars = CopyOnWriteArraySet<String>()
     private val skipIds = CopyOnWriteArraySet<String>()
     private val activityBlackList = CopyOnWriteArraySet<String>()
@@ -48,6 +45,9 @@ class CstService : LifecycleService(), IActivityInfoImpl {
     private var mWindowManager: WindowManager? = null
     private var mFloatingView: FloatingView? = null
     private var mIsInterceptAD: Boolean = false
+
+    private var mPkgName: String? = null
+    private var mActivityName: String? = null
 
     companion object {
         const val NOTIFY_ID = 10086
@@ -97,7 +97,7 @@ class CstService : LifecycleService(), IActivityInfoImpl {
                     }
                 }
                 val actBlackStr =
-                    IOUtil.getDiskText(fileName = AD_ACT_WHITE)
+                    IOUtil.getDiskText(fileName = AD_ACT_BLACK)
                 if (!TextUtils.isEmpty(actBlackStr)) {
                     val whiteList = actBlackStr!!.split("#")
                     if (!whiteList.isNullOrEmpty()) {
@@ -145,24 +145,27 @@ class CstService : LifecycleService(), IActivityInfoImpl {
 
     @RequiresApi(Build.VERSION_CODES.JELLY_BEAN_MR2)
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        tryParseActivity(event)
+        if (null == event.packageName || null == event.className) {
+            return
+        }
         val pkgName = event.packageName.toString()
-        val activityName =
-            if (null != mCurrentActivity && !TextUtils.isEmpty(mCurrentActivity!!.name)) {
-                mCurrentActivity!!.name.toString()
-            } else {
-                event.className.toString()
-            }
-
+        val activityName = event.className.toString()
+        if (!TextUtils.isEmpty(activityName)
+            && activityName.startsWith("android", true)
+        ) {
+            return
+        }
+        mPkgName = pkgName
+        mActivityName = activityName
         if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            mFloatingView?.updateInfo(pkgName, activityName)
+            mFloatingView?.updateInfo(mPkgName!!, mActivityName!!)
         }
         // 过滤应用不拦截
-        if (pkgBlackList.contains(pkgName)) {
+        if (pkgBlackList.contains(mPkgName!!)) {
             return
         }
         // 黑名单的activity也不检测
-        if (activityBlackList.contains(activityName)) {
+        if (activityBlackList.contains(mActivityName!!)) {
             return
         }
         val nodeList = findNodeList(event)
@@ -261,8 +264,7 @@ class CstService : LifecycleService(), IActivityInfoImpl {
                 LogUtil.d(
                     TAG,
                     "performClick() currentActivity is ${
-                        mCurrentActivity?.name
-                            ?: "null"
+                        mActivityName ?: "null"
                     } nodeInfo text is ${nodeInfo.text} ; id is ${nodeInfo.viewIdResourceName}"
                 )
             } else {
@@ -279,18 +281,6 @@ class CstService : LifecycleService(), IActivityInfoImpl {
             }
         }
         return false
-    }
-
-    private fun tryParseActivity(event: AccessibilityEvent) {
-        var activityInfo: ActivityInfo? = null
-        try {
-            val componentName =
-                ComponentName(event.packageName.toString(), event.className.toString())
-            activityInfo = packageManager.getActivityInfo(componentName, 0)
-            LogUtil.e(TAG, "mCurrentActivity name is ${mCurrentActivity?.name ?: "null"}")
-        } catch (e: Exception) {
-        }
-        mCurrentActivity = activityInfo
     }
 
     private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {

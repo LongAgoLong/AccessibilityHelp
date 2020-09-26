@@ -23,7 +23,7 @@ class ChooseFileFragment : Fragment() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         list = mutableListOf(
-            ServiceObserver.AD_ACT_WHITE,
+            ServiceObserver.AD_ACT_BLACK,
             ServiceObserver.AD_IDS,
             ServiceObserver.AD_TEXTS,
             ServiceObserver.PACKAGES
