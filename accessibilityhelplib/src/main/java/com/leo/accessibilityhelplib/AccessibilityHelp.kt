@@ -16,6 +16,7 @@ import java.util.*
 class AccessibilityHelp {
     var nodeInfo: AccessibilityNodeInfo? = null
     var mIActivityInfoImpl: IActivityInfoImpl? = null
+    var mService: AccessibilityVtsService? = null
 
     companion object {
         /**
@@ -48,7 +49,7 @@ class AccessibilityHelp {
         return true
     }
 
-    private fun isAccessibilitySettingsOn(context: Context): Boolean {
+    fun isAccessibilitySettingsOn(context: Context): Boolean {
         var accessibilityEnabled = 0
         try {
             accessibilityEnabled = Secure.getInt(

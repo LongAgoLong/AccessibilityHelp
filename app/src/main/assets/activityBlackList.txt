@@ -1,7 +1,7 @@
-tv.danmaku.bili.MainActivityV2#
-com.bilibili.bangumi.ui.page.detail.BangumiDetailActivityV2#
-com.bilibili.bililive.videoliveplayer.ui.roomv3.LiveRoomActivityV3#
-org.qiyi.android.video.MainActivity#
-com.youku.v2.HomePageEntry#
-com.jingdong.app.mall.MainFrameActivity#
+tv.danmaku.bili.MainActivityV2
+com.bilibili.bangumi.ui.page.detail.BangumiDetailActivityV2
+com.bilibili.bililive.videoliveplayer.ui.roomv3.LiveRoomActivityV3
+org.qiyi.android.video.MainActivity
+com.youku.v2.HomePageEntry
+com.jingdong.app.mall.MainFrameActivity
 com.ss.android.article.news.activity.MainActivity

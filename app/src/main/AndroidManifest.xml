@@ -17,7 +17,7 @@
 
         <!--无障碍服务-->
         <service
-            android:name="com.leo.accessibilityhelplib.AccessibilityCstService"
+            android:name="com.leo.accessibilityhelplib.AccessibilityVtsService"
             android:exported="true"
             android:label="AccessibilityHelp"
             android:permission="android.permission.BIND_ACCESSIBILITY_SERVICE">
@@ -29,11 +29,6 @@
                 android:name="android.accessibilityservice"
                 android:resource="@xml/accessibility_service_config" />
         </service>
-        <service
-            android:name=".service.CstService"
-            android:enabled="true"
-            android:exported="true"
-            android:priority="1000" />
 
         <activity
             android:name=".ui.activity.MainActivity"
@@ -44,8 +39,6 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-
-        <activity android:name=".ui.activity.EditConfigActivity"></activity>
     </application>
 
 </manifest>

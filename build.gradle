@@ -2,8 +2,8 @@
 
 buildscript {
     ext {
-        KotlinVersion = '1.3.72'
-        AndroidUtilVersion = '1.6.7'
+        KotlinVersion = '1.6.0'
+        AndroidUtilVersion = '1.6.8'
     }
     repositories {
         // 以下四行代码为阿里gradle 源

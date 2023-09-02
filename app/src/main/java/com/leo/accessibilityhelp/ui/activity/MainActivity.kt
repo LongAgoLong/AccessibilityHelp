@@ -6,15 +6,16 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.databinding.ActivityMainBinding
-import com.leo.accessibilityhelp.util.ServiceHelp
+import com.leo.accessibilityhelp.extensions.setCheckedNoEvent
+import com.leo.accessibilityhelp.ui.view.FloatingView
+import com.leo.accessibilityhelp.util.VtsManager
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.ToastUtil
-import com.leo.system.IntentUtil
+import com.leo.commonutil.storage.SPHelp
 
 
 class MainActivity : BaseActivity() {
@@ -37,54 +38,37 @@ class MainActivity : BaseActivity() {
         /**
          * 开启UI类完整包名和类名悬浮窗
          */
-        mBinding.openActivityTrackerBtn.setOnClickListener {
-            if (!checkOverlayPermission()) {
-                return@setOnClickListener
-            }
-            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
+        mBinding.activityTrackerSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (isChecked && !checkOverlayPermission()) {
+                buttonView?.run { setCheckedNoEvent(false) }
+            } else if (isChecked && !AccessibilityHelp.getInstance()
+                    .checkAccessibility(this@MainActivity)
+            ) {
+                buttonView?.run { setCheckedNoEvent(false) }
                 ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
+            } else {
+                VtsManager.getInstance().isShowInfoView = isChecked
+                VtsManager.getInstance().mFloatingView?.setOnCloseCallback(object :
+                    FloatingView.OnCloseCallback {
+                    override fun onClose() {
+                        mBinding.activityTrackerSwitch.isChecked = false
+                    }
+                })
             }
-            ServiceHelp.getInstance().switchFloatingViewState(true)
-        }
-        mBinding.closeActivityTrackerBtn.setOnClickListener {
-            if (!checkOverlayPermission()) {
-                return@setOnClickListener
-            }
-            ServiceHelp.getInstance().switchFloatingViewState(false)
         }
         /**
          * 开启/关闭开屏广告拦截功能
          */
-        mBinding.openInterceptAdBtn.setOnClickListener {
+        mBinding.interceptAdSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
-                ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
-            }
-            ServiceHelp.getInstance().switchInterceptAd(true)
-        }
-        mBinding.closeInterceptAdBtn.setOnClickListener {
-            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
-                ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
-            }
-            ServiceHelp.getInstance().switchInterceptAd(false)
-        }
-
-        mBinding.checkPermissionBtn.setOnClickListener {
-            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
-                ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
+                buttonView?.run { setCheckedNoEvent(false) }
             } else {
-                ToastUtil.show(text = "无障碍服务已授权")
+                VtsManager.getInstance().isInterceptAD = isChecked
             }
         }
-        mBinding.closeServiceBtn.setOnClickListener {
-            ServiceHelp.getInstance().unBindService()
-            ServiceHelp.getInstance().stopService()
-            android.os.Process.killProcess(android.os.Process.myPid())
-        }
-        mBinding.reloadBtn.setOnClickListener {
-            ServiceHelp.getInstance().reloadFromSd()
-        }
-        mBinding.toEditFileBtn.setOnClickListener {
-            IntentUtil.startActivity(this@MainActivity, EditConfigActivity::class.java)
+        if (AccessibilityHelp.getInstance().isAccessibilitySettingsOn(this)) {
+            val cache = SPHelp.getInstance().getBoolean(key = VtsManager.KEY_INTERCEPT_AD)
+            mBinding.interceptAdSwitch.isChecked = cache
         }
     }
 

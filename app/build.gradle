@@ -13,7 +13,7 @@ android {
     }
     defaultConfig {
         applicationId "com.leo.accessibilityhelp"
-        minSdkVersion 18
+        minSdkVersion 24
         targetSdkVersion 30
         versionCode 8
         versionName "1.8"
@@ -54,9 +54,9 @@ dependencies {
     implementation 'androidx.appcompat:appcompat:1.2.0'
     implementation 'androidx.constraintlayout:constraintlayout:1.1.3'
 
-    def nav = "2.3.0"
-    implementation "androidx.navigation:navigation-fragment-ktx:$nav"
-    implementation "androidx.navigation:navigation-ui-ktx:$nav"
+//    def nav = "2.3.0"
+//    implementation "androidx.navigation:navigation-fragment-ktx:$nav"
+//    implementation "androidx.navigation:navigation-ui-ktx:$nav"
 
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     testImplementation 'junit:junit:4.12'
@@ -77,10 +77,10 @@ static def releaseTime() {
     return new Date().format("yyyyMMddHHmmss", TimeZone.getTimeZone("GMT+8"))
 }
 
-task deleteOutput(type: Delete) {
-    def path = buildDir.path + File.separator + "outputs" + File.separator
-    File file = file(path)
-    delete file
-    println "delete path -> " + path
-}
-preBuild.dependsOn deleteOutput
+//task deleteOutput(type: Delete) {
+//    def path = buildDir.path + File.separator + "outputs" + File.separator
+//    File file = file(path)
+//    delete file
+//    println "delete path -> " + path
+//}
+//preBuild.dependsOn deleteOutput

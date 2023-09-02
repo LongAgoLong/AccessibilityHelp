@@ -2,9 +2,9 @@ package com.leo.accessibilityhelplib
 
 import android.accessibilityservice.AccessibilityService
 import android.view.accessibility.AccessibilityEvent
-import com.leo.system.LogUtil
+import com.leo.system.log.ZLog
 
-class AccessibilityCstService : AccessibilityService() {
+class AccessibilityVtsService : AccessibilityService() {
     companion object {
         const val TAG = "AccessibilityCstService"
     }
@@ -18,13 +18,14 @@ class AccessibilityCstService : AccessibilityService() {
     }
 
     override fun onServiceConnected() {
-        LogUtil.i(TAG, "onServiceConnected")
+        ZLog.i(TAG, "onServiceConnected")
         super.onServiceConnected()
+        AccessibilityHelp.getInstance().mService = this
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent?) {
         //To change body of created functions use File | Settings | File Templates.
-//        LogUtil.i(
+//        ZLog.i(
 //            TAG,
 //            "onAccessibilityEvent : pkg is ${event?.packageName}; cls name is ${event?.className}"
 //        )
@@ -42,7 +43,8 @@ class AccessibilityCstService : AccessibilityService() {
     }
 
     override fun onDestroy() {
-        LogUtil.i(TAG, "onDestroy")
+        ZLog.i(TAG, "onDestroy")
+        AccessibilityHelp.getInstance().mService = null
         super.onDestroy()
     }
 }

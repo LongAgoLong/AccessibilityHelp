@@ -1,15 +1,7 @@
 <resources>
     <string name="app_name">一键达</string>
     <string name="accessibility_service_description">开启功能, 可以实现以下功能：\n①跟踪栈顶Activity功能\n②跳过app启动广告</string>
-    <string name="text_open_intercept_ad">开启\n开屏广告拦截</string>
-    <string name="text_close_intercept_ad">关闭\n开屏广告拦截</string>
-    <string name="text_close_window">关闭activity\n信息悬浮窗</string>
-    <string name="text_open_window">开启activity\n信息悬浮窗</string>
-    <string name="text_close_service">关闭服务</string>
-    <string name="text_reload">重新加载数据</string>
-    <string name="text_filter_rule">查看过滤规则</string>
-    <string name="text_check_permission">①检测\n无障碍权限</string>
+    <string name="text_intercept_ad">广告拦截</string>
+    <string name="text_window">信息悬浮窗</string>
     <string name="tip_permission">使用须知：\n1、必须先授予无障碍服务权限\n2、应用设置允许自启动\n3、锁定后台</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 </resources>
