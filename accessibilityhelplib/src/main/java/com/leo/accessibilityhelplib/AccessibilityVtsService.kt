@@ -30,10 +30,6 @@ class AccessibilityVtsService : AccessibilityService() {
 //            "onAccessibilityEvent : pkg is ${event?.packageName}; cls name is ${event?.className}"
 //        )
         try {
-            val nodeInfo = rootInActiveWindow
-            nodeInfo?.run {
-                AccessibilityHelp.getInstance().nodeInfo = this
-            }
             event?.run {
                 AccessibilityHelp.getInstance().notifyEvent(this)
             }

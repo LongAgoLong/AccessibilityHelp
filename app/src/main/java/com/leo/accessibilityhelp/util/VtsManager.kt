@@ -3,29 +3,35 @@ package com.leo.accessibilityhelp.util
 import android.content.Context
 import android.graphics.PixelFormat
 import android.os.Build
-import android.os.SystemClock
 import android.text.TextUtils
 import android.view.Gravity
 import android.view.WindowManager
 import android.view.accessibility.AccessibilityEvent
 import android.view.accessibility.AccessibilityNodeInfo
+import com.leo.accessibilityhelp.extensions.getPhoneAllActivities
 import com.leo.accessibilityhelp.extensions.readAssetsStringList
 import com.leo.accessibilityhelp.ui.view.FloatingView
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
+import com.leo.accessibilityhelplib.util.HandlerUtils
 import com.leo.accessibilityhelplib.util.VtsTouchUtils
+import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.ToastUtil
 import com.leo.commonutil.storage.IOUtil
 import com.leo.commonutil.storage.SPHelp
 import com.leo.system.context.ContextHelper
 import com.leo.system.log.ZLog
-import java.util.Locale
 
 class VtsManager : IActivityInfoImpl {
+
     private val skipChars = mutableListOf<String>()
     private val skipIds = mutableListOf<String>()
-    private val activityBlackList = mutableListOf<String>()
-    private val pkgBlackList = mutableListOf<String>()
+    private val allAppInfoMap = mutableMapOf<String, List<String>>()
+
+    /**
+     * 上一次命中的界面
+     */
+    private var lastHitPkgAndActivity: String = ""
 
     private var mParams: WindowManager.LayoutParams? = null
     private var mWindowManager: WindowManager? = null
@@ -39,13 +45,16 @@ class VtsManager : IActivityInfoImpl {
             if (value == field) {
                 return
             }
-            if (value) addInfoView() else removeInfoView()
             field = value
+            HandlerUtils.getMainHandler().post {
+                if (field) addInfoView() else removeInfoView()
+            }
         }
 
     /**
      * 是否开启拦截广告功能
      */
+    @Volatile
     var isInterceptAD: Boolean = false
         set(value) {
             SPHelp.getInstance().put(key = KEY_INTERCEPT_AD, o = value)
@@ -59,7 +68,6 @@ class VtsManager : IActivityInfoImpl {
 
         const val AD_IDS = "skipIds.txt"
         const val AD_TEXTS = "skipTexts.txt"
-        const val AD_ACT_BLACK = "activityBlackList.txt"
         const val PACKAGES = "pkgBlackList.txt"
         private var mInstance: VtsManager? = null
         fun getInstance(): VtsManager {
@@ -73,10 +81,16 @@ class VtsManager : IActivityInfoImpl {
      * 初始化
      */
     fun init() {
-        loadConfigFromSdcard()
-        AccessibilityHelp.getInstance().mIActivityInfoImpl = this
+        HandlerUtils.getVtsHandler().post {
+            loadConfigFromSdcard()
+            // TODO 监听系统安装卸载应用
+            AccessibilityHelp.getInstance().mIActivityInfoImpl = this
+        }
     }
 
+    /**
+     * 加载配置
+     */
     private fun loadConfigFromSdcard() {
         val idList = IOUtil.readAssetsStringList(ContextHelper.context, AD_IDS)
         if (idList.isNotEmpty()) {
@@ -86,17 +100,17 @@ class VtsManager : IActivityInfoImpl {
         if (adTexts.isNotEmpty()) {
             this.skipChars.addAll(adTexts)
         }
-        val actBlackList =
-            IOUtil.readAssetsStringList(ContextHelper.context, AD_ACT_BLACK)
-        if (actBlackList.isNotEmpty()) {
-            this.activityBlackList.addAll(actBlackList)
-        }
-        val pkgBlackList = IOUtil.readAssetsStringList(ContextHelper.context, PACKAGES)
-        if (pkgBlackList.isNotEmpty()) {
-            this.pkgBlackList.addAll(pkgBlackList)
-        }
+        loadAllAppInfo()
     }
 
+    private fun loadAllAppInfo() {
+        val allAppInfoMap = AppInfoUtil.getPhoneAllActivities()
+        this.allAppInfoMap.putAll(allAppInfoMap)
+        val pkgBlackList = IOUtil.readAssetsStringList(ContextHelper.context, PACKAGES)
+        pkgBlackList.forEach {
+            this.allAppInfoMap.remove(it)
+        }
+    }
 
     private fun initTrackerWindowManager() {
         mParams ?: run {
@@ -130,12 +144,6 @@ class VtsManager : IActivityInfoImpl {
             mFloatingView ?: run {
                 initTrackerWindowManager()
                 mFloatingView = FloatingView(ContextHelper.context)
-                mFloatingView!!.setOnCloseCallback(callback = object :
-                    FloatingView.OnCloseCallback {
-                    override fun onClose() {
-                        removeInfoView()
-                    }
-                })
                 mFloatingView!!.layoutParams = mParams
                 mWindowManager?.addView(mFloatingView, mParams)
             }
@@ -153,57 +161,77 @@ class VtsManager : IActivityInfoImpl {
     }
 
     override fun onAccessibilityEvent(event: AccessibilityEvent) {
-        // TODO 加一个事件流
-        if (event.packageName.isNullOrEmpty() || event.className.isNullOrEmpty()) {
-            return
-        }
-        val pkgName = event.packageName.toString()
-        val activityName = event.className.toString()
-        if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
-            mFloatingView?.updateInfo(pkgName, activityName)
-        }
-        // 过滤应用不拦截
-        if (pkgBlackList.contains(pkgName)) {
-            return
-        }
-        // 黑名单的activity也不检测
-        if (activityBlackList.contains(activityName)) {
-            return
-        }
-        val nodeList = findNodeList(event)
-        if (nodeList.isNullOrEmpty()) {
-            return
-        }
-
-        for (node in nodeList) {
-            if (!TextUtils.isEmpty(node.text)) {
-                // 防止会员跳过的按钮
-                val s = node.text.toString().toLowerCase(Locale.getDefault())
-                if (s.contains("vip")
-                    || s.contains("会员")
-                    || s.contains("會員")
-                ) {
-                    continue
+        HandlerUtils.getVtsHandler().post {
+            if (event.packageName.isNullOrEmpty() || event.className.isNullOrEmpty()) {
+                return@post
+            }
+            val pkgName = event.packageName.toString()
+            val activityName = event.className.toString()
+            val allActivities = allAppInfoMap[pkgName] ?: return@post
+            if (!allActivities.contains(activityName)) {
+                ZLog.e(TAG, "onAccessibilityEvent: not match activity!")
+                return@post
+            }
+            if (event.eventType == AccessibilityEvent.TYPE_WINDOW_STATE_CHANGED) {
+                HandlerUtils.getMainHandler().post {
+                    mFloatingView?.updateInfo(pkgName, activityName)
                 }
             }
-            if (VtsTouchUtils.performClick(node)) {
-                break
+            val currentHitResult = "$pkgName-$activityName"
+            if (TextUtils.equals(currentHitResult, lastHitPkgAndActivity)
+                || !isInterceptAD
+            ) {
+                return@post
+            }
+            lastHitPkgAndActivity = currentHitResult
+            ZLog.d(TAG, "onAccessibilityEvent: activity = $currentHitResult")
+            val source = AccessibilityHelp.getInstance().mService ?: return@post
+            val nodeList = findNodeList(source.rootInActiveWindow)
+            if (nodeList.isNullOrEmpty()) {
+                return@post
+            }
+
+            for (node in nodeList) {
+                if (VtsTouchUtils.performClick(node)) {
+                    break
+                }
             }
         }
     }
 
-    private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {
+    private fun findNodeList(root: AccessibilityNodeInfo): List<AccessibilityNodeInfo>? {
         var nodeList: List<AccessibilityNodeInfo>? = null
-        for (s in skipChars) {
-            if (!event.source?.findAccessibilityNodeInfosByText(s).also {
+        for (id in skipIds) {
+            if (!root.findAccessibilityNodeInfosByViewId(id).also {
                     nodeList = it
                 }.isNullOrEmpty()) {
                 break
             }
         }
         if (nodeList.isNullOrEmpty()) {
-            for (id in skipIds) {
-                if (!event.source?.findAccessibilityNodeInfosByViewId(id).also {
+            for (s in skipChars) {
+                if (!root.findAccessibilityNodeInfosByText(s).also {
+                        nodeList = it
+                    }.isNullOrEmpty()) {
+                    break
+                }
+            }
+        }
+        return nodeList
+    }
+
+    private fun findNodeList(event: AccessibilityEvent): List<AccessibilityNodeInfo>? {
+        var nodeList: List<AccessibilityNodeInfo>? = null
+        for (id in skipIds) {
+            if (!event.source?.findAccessibilityNodeInfosByViewId(id).also {
+                    nodeList = it
+                }.isNullOrEmpty()) {
+                break
+            }
+        }
+        if (nodeList.isNullOrEmpty()) {
+            for (s in skipChars) {
+                if (!event.source?.findAccessibilityNodeInfosByText(s).also {
                         nodeList = it
                     }.isNullOrEmpty()) {
                     break

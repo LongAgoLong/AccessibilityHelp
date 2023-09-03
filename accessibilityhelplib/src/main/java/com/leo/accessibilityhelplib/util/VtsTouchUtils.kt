@@ -21,7 +21,6 @@ import java.util.function.Consumer
  */
 object VtsTouchUtils {
 
-    private val mUiHandler = Handler(Looper.getMainLooper())
     private const val TAG = "AutoTouchUtils"
     private val SPEECH_WINDOW_CONTROLS: MutableList<SpeechWindowControl> = CopyOnWriteArrayList()
 
@@ -75,6 +74,7 @@ object VtsTouchUtils {
                 x = bounds.centerX(),
                 y = bounds.centerY()
             )
+            ZLog.d(TAG, "performClick: ${this.text}")
             return true
         }
         ZLog.i(TAG, "performClick() return false")
@@ -134,7 +134,7 @@ object VtsTouchUtils {
         afterTouchEvent: () -> Unit? = {}
     ) {
         val service = AccessibilityHelp.getInstance().mService ?: return
-        mUiHandler.post {
+        HandlerUtils.getMainHandler().post {
             ZLog.i(TAG, "clickScreen: start -> x = $x ; y = $y")
             beforeTouchEvent()
             SPEECH_WINDOW_CONTROLS.forEach(Consumer { speechWindowControl: SpeechWindowControl ->
@@ -143,7 +143,7 @@ object VtsTouchUtils {
             val gestureBuilder = GestureDescription.Builder()
             val path = Path()
             path.moveTo(x.toFloat(), y.toFloat())
-            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 50, 100))
+            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 10, 100))
             service.dispatchGesture(
                 gestureBuilder.build(),
                 object : AccessibilityService.GestureResultCallback() {
@@ -165,7 +165,7 @@ object VtsTouchUtils {
                         })
                     }
                 },
-                mUiHandler
+                HandlerUtils.getMainHandler()
             )
         }
     }
@@ -183,7 +183,7 @@ object VtsTouchUtils {
         afterTouchEvent: () -> Unit = {}
     ) {
         val service = AccessibilityHelp.getInstance().mService ?: return
-        mUiHandler.post {
+        HandlerUtils.getMainHandler().post {
             ZLog.i(
                 TAG,
                 "swipeScreen: start -> fromX = $fromX ; fromY = $fromY ; toX = $toX ; toY = $toY"
@@ -196,7 +196,7 @@ object VtsTouchUtils {
             val path = Path()
             path.moveTo(fromX.toFloat(), fromY.toFloat())
             path.lineTo(toX.toFloat(), toY.toFloat())
-            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 50, 300))
+            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 10, 300))
             service.dispatchGesture(
                 gestureBuilder.build(),
                 object : AccessibilityService.GestureResultCallback() {
@@ -218,7 +218,7 @@ object VtsTouchUtils {
                         })
                     }
                 },
-                mUiHandler
+                HandlerUtils.getMainHandler()
             )
         }
     }

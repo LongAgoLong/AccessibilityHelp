@@ -8,13 +8,11 @@ import android.provider.Settings.Secure.ACCESSIBILITY_ENABLED
 import android.provider.Settings.Secure.ENABLED_ACCESSIBILITY_SERVICES
 import android.provider.Settings.SettingNotFoundException
 import android.view.accessibility.AccessibilityEvent
-import android.view.accessibility.AccessibilityNodeInfo
 import com.leo.accessibilityhelplib.callback.IActivityInfoImpl
-import java.util.*
+import java.util.Locale
 
 
 class AccessibilityHelp {
-    var nodeInfo: AccessibilityNodeInfo? = null
     var mIActivityInfoImpl: IActivityInfoImpl? = null
     var mService: AccessibilityVtsService? = null
 
@@ -66,9 +64,9 @@ class AccessibilityHelp {
                 ENABLED_ACCESSIBILITY_SERVICES
             )
             services?.run {
-                return toLowerCase(Locale.getDefault())
+                return lowercase(Locale.getDefault())
                     .contains(
-                        context.packageName.toLowerCase(Locale.getDefault())
+                        context.packageName.lowercase(Locale.getDefault())
                     )
             }
         }

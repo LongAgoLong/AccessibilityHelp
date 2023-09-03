@@ -5,7 +5,6 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import androidx.annotation.RequiresApi
 import androidx.databinding.DataBindingUtil
 import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.databinding.ActivityMainBinding
@@ -88,7 +87,6 @@ class MainActivity : BaseActivity() {
         return true
     }
 
-    @RequiresApi(Build.VERSION_CODES.M)
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_CODE && !Settings.canDrawOverlays(this)) {

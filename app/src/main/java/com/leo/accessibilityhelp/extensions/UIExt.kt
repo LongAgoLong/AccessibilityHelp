@@ -1,8 +1,10 @@
 package com.leo.accessibilityhelp.extensions
 
+import android.annotation.SuppressLint
 import android.widget.CompoundButton
 import com.leo.system.log.ZLog
 
+@SuppressLint("DiscouragedPrivateApi")
 fun CompoundButton.setCheckedNoEvent(isCheck: Boolean) {
     try {
         ZLog.d("CompoundButton", "setCheckedNoEvent: $isCheck")

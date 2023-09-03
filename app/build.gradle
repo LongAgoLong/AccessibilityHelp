@@ -42,7 +42,7 @@ android {
 
     applicationVariants.all { variant ->
         variant.outputs.all {
-            def fileName = "一键达" + "_v${defaultConfig.versionName}_c${defaultConfig.versionCode}_t${releaseTime()}_" + variant.name + ".apk"
+            def fileName = "OntShot" + "_v${defaultConfig.versionName}_c${defaultConfig.versionCode}_t${releaseTime()}_" + variant.name + ".apk"
             outputFileName = fileName
         }
     }
