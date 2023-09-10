@@ -7,13 +7,12 @@ import android.graphics.Path
 import android.graphics.Rect
 import android.media.AudioManager
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.accessibility.AccessibilityNodeInfo
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.system.context.ContextHelper
 import com.leo.system.log.ZLog
 import java.util.concurrent.CopyOnWriteArrayList
+import java.util.concurrent.locks.ReentrantLock
 import java.util.function.Consumer
 
 /**
@@ -152,7 +151,7 @@ object VtsTouchUtils {
                         ZLog.i(TAG, "clickScreen: Gesture Completed")
                         afterTouchEvent()
                         SPEECH_WINDOW_CONTROLS.forEach(Consumer { speechWindowControl: SpeechWindowControl ->
-                            speechWindowControl.afterExecuteTouch()
+                            speechWindowControl.afterExecuteTouch(false)
                         })
                     }
 
@@ -161,7 +160,7 @@ object VtsTouchUtils {
                         ZLog.w(TAG, "clickScreen: Gesture Canceled")
                         afterTouchEvent()
                         SPEECH_WINDOW_CONTROLS.forEach(Consumer { speechWindowControl: SpeechWindowControl ->
-                            speechWindowControl.afterExecuteTouch()
+                            speechWindowControl.afterExecuteTouch(true)
                         })
                     }
                 },
@@ -205,7 +204,7 @@ object VtsTouchUtils {
                         ZLog.i(TAG, "swipeScreen: Gesture Completed")
                         afterTouchEvent()
                         SPEECH_WINDOW_CONTROLS.forEach(Consumer { speechWindowControl: SpeechWindowControl ->
-                            speechWindowControl.afterExecuteTouch()
+                            speechWindowControl.afterExecuteTouch(false)
                         })
                     }
 
@@ -214,12 +213,107 @@ object VtsTouchUtils {
                         ZLog.w(TAG, "swipeScreen: Gesture Canceled")
                         afterTouchEvent()
                         SPEECH_WINDOW_CONTROLS.forEach(Consumer { speechWindowControl: SpeechWindowControl ->
-                            speechWindowControl.afterExecuteTouch()
+                            speechWindowControl.afterExecuteTouch(true)
                         })
                     }
                 },
                 HandlerUtils.getMainHandler()
             )
+        }
+    }
+
+    /**
+     * 串行分发手势事件
+     * @param gestureList List<StrokeDescription>
+     * @param beforeTouchEvent Function0<Unit>
+     * @param afterTouchEvent Function1<[@kotlin.ParameterName] Boolean, Unit>
+     * @param sleepTime Long 事件间隔
+     */
+    fun dispatchGestureListSerial(
+        gestureList: List<GestureDescription.StrokeDescription>,
+        beforeTouchEvent: () -> Unit = {},
+        afterTouchEvent: (isCancel: Boolean) -> Unit = {},
+        sleepTime: Long = 0
+    ) {
+        val service = AccessibilityHelp.getInstance().mService ?: return
+        HandlerUtils.getVtsHandler().post {
+            var mIsInterrupt = false
+            val mLock = ReentrantLock()
+            beforeTouchEvent()
+            gestureList.forEach {
+                if (mIsInterrupt) {
+                    return@forEach
+                }
+                val gestureBuilder = GestureDescription.Builder()
+                gestureBuilder.addStroke(it)
+                service.dispatchGesture(
+                    gestureBuilder.build(),
+                    object : AccessibilityService.GestureResultCallback() {
+                        override fun onCompleted(gestureDescription: GestureDescription) {
+                            super.onCompleted(gestureDescription)
+                            ZLog.i(TAG, "swipeScreen: Gesture Completed")
+                            mLock.unlock()
+                        }
+
+                        override fun onCancelled(gestureDescription: GestureDescription) {
+                            super.onCancelled(gestureDescription)
+                            ZLog.w(TAG, "swipeScreen: Gesture Canceled")
+                            mIsInterrupt = true
+                            mLock.unlock()
+                        }
+                    },
+                    HandlerUtils.getMainHandler()
+                )
+                mLock.lock()
+                safeSleepThread(sleepTime)
+            }
+            afterTouchEvent(mIsInterrupt)
+        }
+    }
+
+    /**
+     * 并行分发手势事件
+     * @param gestureList List<StrokeDescription>
+     * @param beforeTouchEvent Function0<Unit>
+     * @param afterTouchEvent Function1<[@kotlin.ParameterName] Boolean, Unit>
+     */
+    fun dispatchGestureListParallel(
+        gestureList: List<GestureDescription.StrokeDescription>,
+        beforeTouchEvent: () -> Unit = {},
+        afterTouchEvent: (isCancel: Boolean) -> Unit = {}
+    ) {
+        val service = AccessibilityHelp.getInstance().mService ?: return
+        HandlerUtils.getVtsHandler().post {
+            beforeTouchEvent()
+            val gestureBuilder = GestureDescription.Builder()
+            gestureList.forEach {
+                gestureBuilder.addStroke(it)
+            }
+            service.dispatchGesture(
+                gestureBuilder.build(),
+                object : AccessibilityService.GestureResultCallback() {
+                    override fun onCompleted(gestureDescription: GestureDescription) {
+                        super.onCompleted(gestureDescription)
+                        ZLog.i(TAG, "swipeScreen: Gesture Completed")
+                        afterTouchEvent(false)
+                    }
+
+                    override fun onCancelled(gestureDescription: GestureDescription) {
+                        super.onCancelled(gestureDescription)
+                        ZLog.w(TAG, "swipeScreen: Gesture Canceled")
+                        afterTouchEvent(true)
+                    }
+                },
+                HandlerUtils.getMainHandler()
+            )
+        }
+    }
+
+    private fun safeSleepThread(mills: Long) {
+        try {
+            Thread.sleep(mills)
+        } catch (e: Exception) {
+            e.printStackTrace()
         }
     }
 
@@ -233,6 +327,6 @@ object VtsTouchUtils {
         /**
          * 执行触摸事件结束之后回调
          */
-        fun afterExecuteTouch()
+        fun afterExecuteTouch(isCancel: Boolean)
     }
 }
