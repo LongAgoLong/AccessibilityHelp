@@ -9,12 +9,10 @@ import androidx.databinding.DataBindingUtil
 import com.leo.accessibilityhelp.R
 import com.leo.accessibilityhelp.databinding.ActivityMainBinding
 import com.leo.accessibilityhelp.extensions.setCheckedNoEvent
-import com.leo.accessibilityhelp.ui.view.FloatingView
-import com.leo.accessibilityhelp.util.VtsManager
+import com.leo.accessibilityhelp.vts.VtsManager
 import com.leo.accessibilityhelplib.AccessibilityHelp
 import com.leo.commonutil.app.AppInfoUtil
 import com.leo.commonutil.notify.ToastUtil
-import com.leo.commonutil.storage.SPHelp
 
 
 class MainActivity : BaseActivity() {
@@ -37,6 +35,7 @@ class MainActivity : BaseActivity() {
         /**
          * 开启UI类完整包名和类名悬浮窗
          */
+        mBinding.activityTrackerSwitch.isChecked = VtsManager.getInstance().isAppInfoShow()
         mBinding.activityTrackerSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             if (isChecked && !checkOverlayPermission()) {
                 buttonView?.run { setCheckedNoEvent(false) }
@@ -46,28 +45,34 @@ class MainActivity : BaseActivity() {
                 buttonView?.run { setCheckedNoEvent(false) }
                 ToastUtil.show(text = "请授予${AppInfoUtil.appName}无障碍服务权限")
             } else {
-                VtsManager.getInstance().isShowInfoView = isChecked
-                VtsManager.getInstance().mFloatingView?.setOnCloseCallback(object :
-                    FloatingView.OnCloseCallback {
-                    override fun onClose() {
-                        mBinding.activityTrackerSwitch.isChecked = false
-                    }
+                VtsManager.getInstance().toggleAppInfoView(isChecked, onClose = {
+                    mBinding.activityTrackerSwitch.isChecked = false
                 })
             }
         }
         /**
          * 开启/关闭开屏广告拦截功能
          */
+        mBinding.interceptAdSwitch.isChecked = VtsManager.getInstance().isAdsIntercept()
         mBinding.interceptAdSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
             if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
                 buttonView?.run { setCheckedNoEvent(false) }
             } else {
-                VtsManager.getInstance().isInterceptAD = isChecked
+                VtsManager.getInstance().toggleAdsIntercept(isChecked)
             }
         }
-        if (AccessibilityHelp.getInstance().isAccessibilitySettingsOn(this)) {
-            val cache = SPHelp.getInstance().getBoolean(key = VtsManager.KEY_INTERCEPT_AD)
-            mBinding.interceptAdSwitch.isChecked = cache
+
+        /**
+         * 微信红包功能
+         */
+        mBinding.wechatRedPacketSwitch.isChecked =
+            VtsManager.getInstance().isAutoOpenWechatRedPacket()
+        mBinding.wechatRedPacketSwitch.setOnCheckedChangeListener { buttonView, isChecked ->
+            if (!AccessibilityHelp.getInstance().checkAccessibility(this@MainActivity)) {
+                buttonView?.run { setCheckedNoEvent(false) }
+            } else {
+                VtsManager.getInstance().toggleAutoOpenWechatRedPacket(isChecked)
+            }
         }
     }
 

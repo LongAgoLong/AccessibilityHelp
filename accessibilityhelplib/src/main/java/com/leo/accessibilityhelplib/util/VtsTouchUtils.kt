@@ -142,7 +142,7 @@ object VtsTouchUtils {
             val gestureBuilder = GestureDescription.Builder()
             val path = Path()
             path.moveTo(x.toFloat(), y.toFloat())
-            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 10, 100))
+            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 0, 50))
             service.dispatchGesture(
                 gestureBuilder.build(),
                 object : AccessibilityService.GestureResultCallback() {
@@ -195,7 +195,7 @@ object VtsTouchUtils {
             val path = Path()
             path.moveTo(fromX.toFloat(), fromY.toFloat())
             path.lineTo(toX.toFloat(), toY.toFloat())
-            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 10, 300))
+            gestureBuilder.addStroke(GestureDescription.StrokeDescription(path, 0, 300))
             service.dispatchGesture(
                 gestureBuilder.build(),
                 object : AccessibilityService.GestureResultCallback() {

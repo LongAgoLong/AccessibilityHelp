@@ -42,10 +42,20 @@
             android:layout_marginTop="10dp"
             android:text="@string/text_window"
             android:textSize="18sp"
-            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintBottom_toTopOf="@+id/wechatRedPacketSwitch"
             app:layout_constraintLeft_toLeftOf="parent"
             app:layout_constraintRight_toRightOf="parent"
             app:layout_constraintTop_toBottomOf="@id/interceptAdSwitch" />
 
+        <androidx.appcompat.widget.SwitchCompat
+            android:id="@+id/wechatRedPacketSwitch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="@string/text_wechat_red_packet"
+            android:textSize="18sp"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/activityTrackerSwitch" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 </layout>

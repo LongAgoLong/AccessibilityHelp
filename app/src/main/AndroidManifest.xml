@@ -34,6 +34,18 @@
                 android:resource="@xml/accessibility_service_config" />
         </service>
 
+        <!--通知监听服务-->
+        <service
+            android:name=".vts.notification.VtsNotificationListenerService"
+            android:enabled="true"
+            android:label="测试通知服务"
+            android:permission="android.permission.BIND_NOTIFICATION_LISTENER_SERVICE">
+            <intent-filter>
+                <action android:name="android.service.notification.NotificationListenerService" />
+            </intent-filter>
+        </service>
+
+
         <activity
             android:name=".ui.activity.MainActivity"
             android:launchMode="singleInstance">
